@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SuperVest">
+<meta name="theme-color" content="#6750A4">
+<meta name="description" content="SuperVest — painel de estudos para o vestibular: conteúdos, revisões, simulados, redação, lista de tarefas e calendário anual.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="shortcut icon" href="favicon.ico">
+<title>SuperVest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFBFE;
+    --bg-shell:#FFFBFE;
+    --card:#F3EDF7;
+    --card-2:#ECE6F0;
+    --border:rgba(73,69,79,0.16);
+    --border-soft:rgba(73,69,79,0.08);
+    --text:#1D1B20;
+    --text-dim:#49454F;
+    --text-faint:#79747E;
+    --gold:#6750A4;
+    --gold-dim:#EADDFF;
+    --gold-contrast:#FFFFFF;
+    --gold-dim-contrast:#21005D;
+    --teal:#4FD1C5;
+    --teal-dim:rgba(79,209,197,0.16);
+    --coral:#B3261E;
+    --coral-dim:#F9DEDC;
+    --green:#2E7D32;
+    --green-dim:rgba(46,125,50,0.14);
+    --purple:#625B71;
+    --radius:20px;
+    --radius-sm:14px;
+    --elevation-1:0 1px 2px rgba(29,27,32,0.10), 0 1px 3px 1px rgba(29,27,32,0.06);
+    --elevation-2:0 2px 6px rgba(29,27,32,0.12), 0 1px 2px rgba(29,27,32,0.08);
+    color-scheme: light;
+    transition: background-color .25s ease, color .25s ease;
+  }
+  html[data-theme="dark"]{
+    --bg:#141218;
+    --bg-shell:#141218;
+    --card:#211F26;
+    --card-2:#2B2930;
+    --border:rgba(202,196,208,0.18);
+    --border-soft:rgba(202,196,208,0.08);
+    --text:#E6E0E9;
+    --text-dim:#CAC4D0;
+    --text-faint:#938F99;
+    --gold:#D0BCFF;
+    --gold-dim:#4F378B;
+    --gold-contrast:#381E72;
+    --gold-dim-contrast:#EADDFF;
+    --teal:#5FE1D4;
+    --teal-dim:rgba(95,225,212,0.18);
+    --coral:#F2B8B5;
+    --coral-dim:#8C1D18;
+    --green:#8BD68F;
+    --green-dim:rgba(139,214,143,0.16);
+    --purple:#CCC2DC;
+    --elevation-1:0 1px 3px rgba(0,0,0,0.5);
+    --elevation-2:0 2px 6px rgba(0,0,0,0.55);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    display:flex;
+    justify-content:center;
+    font-family:'Roboto',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app-shell{
+    width:100%;
+    max-width:448px;
+    min-height:100vh;
+    background:var(--bg-shell);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    padding:22px 20px 14px;
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(180deg, var(--bg-shell) 75%, transparent);
+  }
+  .topbar-eyebrow{
+    font-family:'Roboto',sans-serif;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .topbar-eyebrow-home{
+    font-size:15px;
+    font-weight:800;
+    color:var(--text-dim);
+  }
+  .topbar-title{
+    font-family:'Roboto',sans-serif;
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .screen{
+    flex:1;
+    padding:4px 20px 110px;
+    animation:fadein .25s ease;
+  }
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{
+    background:var(--card);
+    border:none;
+    box-shadow:var(--elevation-1);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .card-title{
+    font-family:'Roboto',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    justify-content:space-between;
+  }
+  .card-title-left{display:flex; align-items:center; gap:8px;}
+  .muted{color:var(--text-dim); font-size:13px; line-height:1.5;}
+  .faint{color:var(--text-faint); font-size:12px;}
+
+  /* icons */
+  .icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+  .icon-lg{width:22px;height:22px;}
+  .icon-sm{width:15px;height:15px;}
+
+  /* stat block */
+  .stats-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .stat{
+    background:var(--card-2);
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:12px 8px;
+    text-align:center;
+  }
+  .stat-value{
+    font-family:'Roboto',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    color:var(--gold);
+  }
+  .stat-label{
+    font-size:10.5px;
+    color:var(--text-dim);
+    margin-top:4px;
+    line-height:1.3;
+  }
+
+  .banner{
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px;
+    border-radius:var(--radius-sm);
+    margin-bottom:10px;
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .banner-gold{background:var(--gold-dim); color:var(--gold-dim-contrast);}
+  .banner-teal{background:var(--teal-dim); color:var(--teal); border:1px solid rgba(79,209,197,0.3);}
+
+  /* bubbles - answer sheet style */
+  .bubble{
+    width:22px; height:22px;
+    border-radius:50%;
+    border:2px solid var(--text-faint);
+    flex-shrink:0;
+    transition:all .18s ease;
+    cursor:pointer;
+  }
+  .bubble.checked{
+    background:var(--gold);
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px var(--gold-dim);
+  }
+  .check-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 4px;
+    border-bottom:1px solid var(--border-soft);
+    cursor:pointer;
+  }
+  .check-row:last-child{border-bottom:none;}
+  .check-text{flex:1; min-width:0;}
+  .check-label{font-size:13.5px; font-weight:600; color:var(--text);}
+  .check-label.done{color:var(--text-faint); text-decoration:line-through; font-weight:500;}
+  .check-sub{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+
+  select, input[type=text], input[type=number], input[type=date], input[type=time], textarea{
+    background:var(--card-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:14px;
+    padding:10px 13px;
+    font-family:'Roboto',sans-serif;
+    font-size:13.5px;
+    width:100%;
+  }
+  select{-webkit-appearance:none; appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%2379747E'/></svg>"); background-repeat:no-repeat; background-position:right 13px center; padding-right:30px;}
+  textarea{resize:vertical; min-height:60px; font-family:'Roboto',sans-serif;}
+  label.field-label{font-size:11.5px; color:var(--text-dim); font-weight:600; margin-bottom:5px; display:block; text-transform:uppercase; letter-spacing:.03em;}
+  .field{margin-bottom:11px;}
+  .field-row{display:flex; gap:8px;}
+  .field-row > .field{flex:1;}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border-radius:100px;
+    padding:11px 18px;
+    font-size:13px;
+    font-weight:700;
+    font-family:'Roboto',sans-serif;
+    cursor:pointer;
+    border:1px solid var(--border);
+    background:var(--card-2);
+    color:var(--text);
+    transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-block{width:100%;}
+  .btn-primary{background:var(--gold); color:var(--gold-contrast); border-color:var(--gold); box-shadow:var(--elevation-1);}
+  .btn-ghost{background:transparent; border-color:transparent;}
+  .btn-danger{color:var(--coral);}
+  .btn-sm{padding:7px 12px; font-size:11.5px; border-radius:100px;}
+  .icon-btn{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--card-2); border:none;
+    color:var(--text-dim); cursor:pointer; flex-shrink:0;
+  }
+  .icon-btn:active{transform:scale(.94);}
+  .row-actions{display:flex; gap:6px;}
+
+  .add-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px; border-radius:100px;
+    border:1px solid var(--gold);
+    color:var(--gold); font-weight:700; font-size:13px;
+    cursor:pointer; margin-bottom:14px;
+    background:transparent;
+  }
+  .add-toggle:active{background:var(--gold-dim);}
+
+  .chip{
+    padding:8px 14px; border-radius:100px;
+    background:transparent; border:1px solid var(--border);
+    font-size:12.5px; font-weight:700; color:var(--text-dim);
+    cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{background:var(--gold-dim); color:var(--gold-dim-contrast); border-color:var(--gold-dim);}
+  .chip-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none;}
+  .chip-row::-webkit-scrollbar{display:none;}
+
+  .badge{
+    font-size:10px; font-weight:700; padding:4px 10px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;
+  }
+  .badge-gold{background:var(--gold-dim); color:var(--gold-dim-contrast);}
+  .badge-teal{background:var(--teal-dim); color:var(--teal);}
+  .badge-coral{background:var(--coral-dim); color:var(--coral);}
+  .badge-green{background:var(--green-dim); color:var(--green);}
+  .badge-neutral{background:var(--card-2); color:var(--text-dim);}
+
+  /* day buttons (frequência semanal) */
+  .day-row{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px;}
+  .day-btn{
+    padding:10px 0; text-align:center; border-radius:var(--radius-sm);
+    background:var(--card-2); border:none;
+    font-family:'Roboto',sans-serif; font-size:11px; font-weight:700;
+    color:var(--text-dim); cursor:pointer;
+  }
+  .day-btn.active{background:var(--teal); color:#08201D;}
+  .day-btn .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin:4px auto 0;visibility:hidden;}
+  .day-btn.has-items .dot{visibility:visible;}
+  .day-btn.active .dot{background:#08201D;}
+
+  /* switch (ajustes) */
+  .switch-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0;}
+  .switch-row:not(:last-child){border-bottom:1px solid var(--border-soft);}
+  .switch-label{font-size:13.5px; font-weight:700;}
+  .switch-sub{font-size:11.5px; color:var(--text-dim); margin-top:1px;}
+  .switch{
+    width:44px; height:26px; border-radius:100px; flex-shrink:0;
+    background:var(--card-2); border:1px solid var(--border);
+    position:relative; cursor:pointer; transition:background .18s ease;
+  }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:20px; height:20px;
+    border-radius:50%; background:var(--text-faint); transition:all .18s ease;
+  }
+  .switch.on{background:var(--gold); border-color:var(--gold);}
+  .switch.on::after{left:20px; background:var(--gold-contrast);}
+
+  /* color theme swatches */
+  .swatch-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:8px;}
+  .swatch{
+    width:40px; height:40px; border-radius:50%; cursor:pointer;
+    border:2px solid transparent; position:relative;
+    box-shadow:inset 0 0 0 1px var(--border-soft);
+  }
+  .swatch.active{border-color:var(--text);}
+  .swatch.active::after{
+    content:''; position:absolute; inset:0; margin:auto; width:8px; height:8px;
+    border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,0.3);
+  }
+
+  .list-item{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 0; border-bottom:1px solid var(--border-soft);
+  }
+  .list-item:last-child{border-bottom:none;}
+
+  .section-label{
+    font-family:'Roboto',sans-serif;
+    font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-faint); margin:16px 0 8px; font-weight:600;
+    display:flex; align-items:center; gap:6px;
+  }
+  .section-label .sq{width:6px;height:6px;border-radius:2px;}
+
+  .empty{
+    text-align:center; padding:22px 10px; color:var(--text-faint); font-size:12.5px;
+  }
+
+  /* seções de conteúdo */
+  .secao-card{padding:14px;}
+  .secao-header{display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer;}
+  .secao-header-left{display:flex; align-items:center; gap:8px; min-width:0; flex:1;}
+  .secao-header-left .secao-nome{font-size:14.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .secao-header-right{display:flex; align-items:center; gap:6px; flex-shrink:0;}
+  .chev-toggle{display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--text-faint); transition:transform .18s ease; transform:rotate(-90deg);}
+  .chev-toggle.open{transform:rotate(0deg);}
+  .secao-body{margin-top:12px;}
+  .secao-add-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:9px; border-radius:100px;
+    border:1px dashed var(--border);
+    color:var(--text-dim); font-weight:700; font-size:12px;
+    cursor:pointer; margin-top:10px;
+    background:transparent;
+  }
+  .secao-add-toggle:active{background:var(--card-2);}
+
+  /* legend / chart */
+  .legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-dim);}
+  .legend-dot{width:9px; height:9px; border-radius:50%;}
+  .multiselect{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;}
+
+  /* bottom nav */
+  .bottomnav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:448px;
+    display:flex; justify-content:space-around; align-items:center;
+    background:var(--card);
+    backdrop-filter:blur(14px);
+    border-top:none;
+    box-shadow:0 -1px 3px rgba(29,27,32,0.08);
+    padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .navbtn{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:var(--text-faint); background:none; border:none; cursor:pointer;
+    font-family:'Roboto',sans-serif; font-size:10.5px; font-weight:700;
+    padding:2px 18px; border-radius:12px;
+  }
+  .navbtn.active{color:var(--text);}
+  .navbtn .navcircle{
+    width:34px; height:32px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    transition:background-color .2s ease, width .2s ease;
+  }
+  .navbtn.active .navcircle{background:var(--gold-dim); width:56px; color:var(--gold-dim-contrast);}
+  .navbtn.sync .navcircle.spinning svg{animation:spin .8s linear;}
+  @keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+
+  /* menu sheet */
+  .overlay{
+    position:fixed; inset:0; background:rgba(5,7,14,0.6);
+    z-index:60; display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .overlay.open{opacity:1; pointer-events:auto;}
+  .sheet{
+    width:100%; max-width:448px; background:var(--card);
+    border-top-left-radius:28px; border-top-right-radius:28px;
+    border:none; box-shadow:0 -4px 16px rgba(29,27,32,0.14);
+    padding:10px 16px calc(20px + env(safe-area-inset-bottom));
+    transform:translateY(100%); transition:transform .25s cubic-bezier(.32,.72,0,1);
+    max-height:80vh; overflow-y:auto;
+  }
+  .overlay.open .sheet{transform:translateY(0);}
+  .sheet-handle{width:32px; height:4px; background:var(--text-faint); opacity:.4; border-radius:2px; margin:6px auto 14px;}
+  .sheet-title{font-family:'Roboto',sans-serif; font-weight:700; font-size:15px; margin:0 0 10px 4px;}
+  .menu-item{
+    display:flex; align-items:center; gap:11px;
+    padding:9px 10px; border-radius:12px; cursor:pointer;
+  }
+  .menu-item:active{background:var(--card-2);}
+  .menu-item .navcircle{
+    width:32px; height:32px; border-radius:11px; background:var(--gold-dim);
+    display:flex; align-items:center; justify-content:center; color:var(--gold-dim-contrast);
+    border:none;
+  }
+  .menu-item-title{font-size:14px; font-weight:700;}
+  .menu-item-sub{font-size:11.5px; color:var(--text-dim); margin-top:1px;}
+
+  .toast{
+    position:fixed; bottom:92px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--text); border:none; color:var(--bg);
+    padding:11px 18px; border-radius:100px; font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; gap:8px;
+    box-shadow:var(--elevation-2);
+    z-index:70; opacity:0; pointer-events:none; transition:all .25s ease;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .progress-track{height:8px; border-radius:5px; background:var(--card-2); overflow:hidden; border:none;}
+  .progress-fill{height:100%; background:var(--gold); border-radius:5px; transition:width .4s ease;}
+
+  .content-card{background:var(--card-2); border:none; border-radius:16px; padding:13px; margin-bottom:10px;}
+  .content-card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;}
+  .content-card-title{font-weight:700; font-size:13.5px;}
+  .content-card-sub{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+
+  .interval-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--card-2); border:none;
+    padding:5px 6px 5px 11px; border-radius:100px; font-size:12px; font-weight:700; color:var(--text);
+    font-family:'Roboto',sans-serif;
+  }
+  .interval-chip button{background:none; border:none; color:var(--text-faint); cursor:pointer; padding:2px; display:flex;}
+
+  .stage-row{display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;}
+  .stage-pill{
+    font-family:'Roboto',sans-serif; font-size:10.5px; font-weight:700;
+    padding:4px 10px; border-radius:100px; cursor:pointer; border:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <div id="app"></div>
+
+  <div class="bottomnav">
+    <button class="navbtn" id="navHome" onclick="app.goto('home')">
+      <span class="navcircle">${''}</span>
+    </button>
+    <button class="navbtn" id="navMenu" onclick="app.toggleMenu()">
+      <span class="navcircle"></span>
+    </button>
+    <button class="navbtn sync" id="navSync" onclick="app.sync()">
+      <span class="navcircle"></span>
+    </button>
+  </div>
+
+  <div class="overlay" id="menuOverlay" onclick="app.closeMenuBg(event)">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Abas do aplicativo</div>
+      <div id="menuList"></div>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="app.importData(this.files[0])">
+    </div>
+  </div>
+
+  <div class="overlay" id="onboardOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div id="onboardContent"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ============ ICONS ============ */
+const ICONS = {
+  home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>',
+  menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',
+  sync:'<path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  book:'<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5V4.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>',
+  check2:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11"/>',
+  pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  repeat:'<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  chevleft:'<path d="M15 18l-6-6 6-6"/>',
+  chevdown:'<path d="M6 9l6 6 6-6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  layers:'<path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/>',
+  moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+};
+function ic(name, cls){ return '<svg class="icon '+(cls||'')+'" viewBox="0 0 24 24">'+ICONS[name]+'</svg>'; }
+
+/* ============ HELPERS ============ */
+let UID = 1;
+function nid(){ return 'i'+(UID++); }
+const STORAGE_KEY = 'painelEstudos_data';
+let RESETTING = false;
+function saveData(){
+  if(RESETTING) return false;
+  try{
+    const payload = {
+      UID,
+      disciplinas: state.disciplinas,
+      conteudos: state.conteudos,
+      secoes: state.secoes,
+      conteudoFrequencia: state.conteudoFrequencia,
+      simulados: state.simulados,
+      calendario: state.calendario,
+      leituras: state.leituras,
+      redacoes: state.redacoes,
+      redacaoFrequencia: state.redacaoFrequencia,
+      revisoes: state.revisoes,
+      revisaoIntervalos: state.revisaoIntervalos,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    return true;
+  }catch(e){ return false; }
+}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    Object.assign(state, data);
+    if(data.UID) UID = data.UID;
+    return true;
+  }catch(e){ return false; }
+}
+function saveBackupAutoPrefs(){
+  try{
+    localStorage.setItem('painelEstudos_backupAuto', JSON.stringify({
+      ativo: state.backupAutoAtivo, dias: state.backupAutoDias, ultima: state.backupAutoUltima
+    }));
+  }catch(e){}
+}
+function loadPrefs(){
+  try{
+    const raw = localStorage.getItem('painelEstudos_backupAuto');
+    if(raw){ const p = JSON.parse(raw); state.backupAutoAtivo=!!p.ativo; state.backupAutoDias=p.dias||7; state.backupAutoUltima=p.ultima||null; }
+  }catch(e){}
+  try{
+    const abas = localStorage.getItem('painelEstudos_abasOcultas');
+    if(abas) state.abasOcultas = JSON.parse(abas);
+  }catch(e){}
+  try{
+    const cor = localStorage.getItem('painelEstudos_cor');
+    if(cor && THEMES[cor]) state.corTema = cor;
+  }catch(e){}
+  try{
+    const da = localStorage.getItem('painelEstudos_darkAuto');
+    if(da){ const p = JSON.parse(da); state.darkAutoAtivo=!!p.ativo; state.darkAutoInicio=p.inicio||'19:00'; state.darkAutoFim=p.fim||'07:00'; }
+  }catch(e){}
+}
+function saveDarkAutoPrefs(){
+  try{
+    localStorage.setItem('painelEstudos_darkAuto', JSON.stringify({
+      ativo: state.darkAutoAtivo, inicio: state.darkAutoInicio, fim: state.darkAutoFim
+    }));
+  }catch(e){}
+}
+function isNightNow(){
+  const now = new Date();
+  const cur = now.getHours()*60 + now.getMinutes();
+  const ini = timeToMin(state.darkAutoInicio);
+  const fim = timeToMin(state.darkAutoFim);
+  if(ini===null || fim===null || ini===fim) return false;
+  return ini<fim ? (cur>=ini && cur<fim) : (cur>=ini || cur<fim);
+}
+function applyDarkAuto(){
+  if(!state.darkAutoAtivo) return false;
+  const newTheme = isNightNow() ? 'dark' : 'light';
+  if(state.theme===newTheme) return false;
+  state.theme = newTheme;
+  document.documentElement.setAttribute('data-theme', state.theme);
+  try{ localStorage.setItem('painelEstudos_theme', state.theme); }catch(e){}
+  applyCorTema();
+  return true;
+}
+function downloadBackupFile(){
+  saveData();
+  const payload = {
+    UID, disciplinas: state.disciplinas, conteudos: state.conteudos, secoes: state.secoes, conteudoFrequencia: state.conteudoFrequencia, simulados: state.simulados,
+    calendario: state.calendario, leituras: state.leituras, redacoes: state.redacoes,
+    redacaoFrequencia: state.redacaoFrequencia, revisoes: state.revisoes, revisaoIntervalos: state.revisaoIntervalos,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const stamp = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  a.href = url;
+  a.download = 'supervest-backup-'+stamp+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function checkAutoBackup(){
+  if(!state.backupAutoAtivo) return;
+  const dias = state.backupAutoUltima ? -diffDays(state.backupAutoUltima) : Infinity;
+  if(dias >= state.backupAutoDias){
+    downloadBackupFile();
+    state.backupAutoUltima = TODAY_STR;
+    saveBackupAutoPrefs();
+    setTimeout(()=>{
+      const t = document.getElementById('toast');
+      if(!t) return;
+      t.innerHTML = ic('check2','icon-sm')+' Backup automático salvo em Downloads';
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), 2600);
+    }, 600);
+  }
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function pad(n){ return n<10?'0'+n:''+n; }
+function toStr(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function addDaysStr(dateStr, n){ const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return toStr(d); }
+function fmtBR(dateStr){ if(!dateStr) return '—'; const d=new Date(dateStr+'T00:00:00'); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function fmtShort(dateStr){ const d=new Date(dateStr+'T00:00:00'); const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; return d.getDate()+' '+meses[d.getMonth()]; }
+function fmtFullBR(dateStr){ const d=new Date(dateStr+'T00:00:00'); const dias=['domingo','segunda','terça','quarta','quinta','sexta','sábado']; const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; return dias[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()]+' '+d.getFullYear(); }
+function fmtWeekdayLong(dateStr){ const d=new Date(dateStr+'T00:00:00'); const dias=['domingo','segunda','terça','quarta','quinta','sexta','sábado']; const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']; return dias[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()]; }
+function monthLabel(dateStr){ const d=new Date(dateStr+'T00:00:00'); const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return meses[d.getMonth()]+' de '+d.getFullYear(); }
+function diffDays(dateStr){ const today=new Date(TODAY_STR+'T00:00:00'); const d=new Date(dateStr+'T00:00:00'); return Math.round((d-today)/86400000); }
+const DIAS = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'];
+const DIAS_FULL = {SEG:'Segunda-feira',TER:'Terça-feira',QUA:'Quarta-feira',QUI:'Quinta-feira',SEX:'Sexta-feira',SAB:'Sábado',DOM:'Domingo'};
+function weekdayAbbrev(dateStr){ const map=['DOM','SEG','TER','QUA','QUI','SEX','SAB']; return map[new Date(dateStr+'T00:00:00').getDay()]; }
+function timeToMin(t){ if(!t) return null; const parts=t.split(':'); const h=parseInt(parts[0]), m=parseInt(parts[1]); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+const COLORS = ['#4B2E83','#4FD1C5','#F26B6B','#B79CF2','#6FCF97','#FFA36C','#7FD1E8','#E88CC0'];
+function colorFor(disciplina){ const idx = state.disciplinas.indexOf(disciplina); return COLORS[idx>=0?idx%COLORS.length:0]; }
+const TIPO_LABEL = {'1fase':'1ª fase','2fase':'2ª fase','inicioInscricao':'Início de inscrições','fimInscricao':'Término de inscrições','simulado':'Simulado'};
+const TIPO_BADGE = {'1fase':'badge-gold','2fase':'badge-coral','inicioInscricao':'badge-teal','fimInscricao':'badge-neutral','simulado':'badge-green'};
+
+const TODAY = new Date();
+const TODAY_STR = toStr(TODAY);
+
+/* ============ SEED DATA ============ */
+const state = {
+  screen:'home',
+  menuOpen:false,
+  theme:'light',
+  showOnboarding:false,
+  disciplinas:[],
+  conteudos:[],
+  secoes:[],
+  conteudoFrequencia:{},
+  simulados:[],
+  calendario:[],
+  leituras:[],
+  redacoes:[],
+  redacaoFrequencia:[],
+  revisoes:[],
+  revisaoIntervalos:[1,7,15,30],
+  // ui filters
+  conteudoDisciplina:null,
+  homeRevisaoDisciplina:'Todas',
+  homeConteudoDisciplina:null,
+  revisaoFiltro:'Todas',
+  simuladoChartVestibular:'Todos',
+  simuladoChartDisciplinas:[],
+  simuladoChartGeral:true,
+  simuladoHistFiltro:'Todos',
+  simuladoEditId:null,
+  showAddSimulado:false,
+  showAddEvento:false,
+  showAddLivro:false,
+  showAddConteudo:false,
+  addConteudoSecaoId:null,
+  showAddSecao:false,
+  showAddRedacao:false,
+  showAddAvulso:false,
+  showIntervalConfig:false,
+  showConcluidas:false,
+  // ajustes
+  abasOcultas:[],
+  corTema:'roxo',
+  backupAutoAtivo:false,
+  backupAutoDias:7,
+  backupAutoUltima:null,
+  redacaoEditId:null,
+  redacaoFiltroBanca:'Todas',
+  redacaoFiltroData:'',
+  calendarioEditId:null,
+  darkAutoAtivo:false,
+  darkAutoInicio:'19:00',
+  darkAutoFim:'07:00',
+};
+
+const THEMES = {
+  roxo:   {label:'Roxo',    swatch:'#6750A4', light:{gold:'#6750A4', goldDim:'#EADDFF', goldContrast:'#FFFFFF', goldDimContrast:'#21005D'}, dark:{gold:'#D0BCFF', goldDim:'#4F378B', goldContrast:'#381E72', goldDimContrast:'#EADDFF'}},
+  rosa:   {label:'Rosa',    swatch:'#984061', light:{gold:'#984061', goldDim:'#FFD9E3', goldContrast:'#FFFFFF', goldDimContrast:'#3E001D'}, dark:{gold:'#FFB1C8', goldDim:'#7A2946', goldContrast:'#5E1133', goldDimContrast:'#FFD9E3'}},
+  verde:  {label:'Verde',   swatch:'#386A20', light:{gold:'#386A20', goldDim:'#B7F397', goldContrast:'#FFFFFF', goldDimContrast:'#072100'}, dark:{gold:'#9DD67D', goldDim:'#215107', goldContrast:'#0F3900', goldDimContrast:'#B7F397'}},
+  amarelo:{label:'Amarelo', swatch:'#7A5900', light:{gold:'#7A5900', goldDim:'#FFDF9E', goldContrast:'#FFFFFF', goldDimContrast:'#261A00'}, dark:{gold:'#F5BD4F', goldDim:'#5C4200', goldContrast:'#402D00', goldDimContrast:'#FFDF9E'}},
+  vermelho:{label:'Vermelho', swatch:'#BA1A1A', light:{gold:'#BA1A1A', goldDim:'#FFDAD6', goldContrast:'#FFFFFF', goldDimContrast:'#410002'}, dark:{gold:'#FFB4AB', goldDim:'#93000A', goldContrast:'#690005', goldDimContrast:'#FFDAD6'}},
+  azul:   {label:'Azul',    swatch:'#0061A4', light:{gold:'#0061A4', goldDim:'#D1E4FF', goldContrast:'#FFFFFF', goldDimContrast:'#001D36'}, dark:{gold:'#9ECAFF', goldDim:'#00497D', goldContrast:'#003258', goldDimContrast:'#D1E4FF'}},
+  neutro: {label:'Branco',  swatch:'#79747E', light:{gold:'#49454F', goldDim:'#E7E0EC', goldContrast:'#FFFFFF', goldDimContrast:'#1D1B20'}, dark:{gold:'#CAC4D0', goldDim:'#3B383E', goldContrast:'#322F35', goldDimContrast:'#E7E0EC'}},
+};
+function applyCorTema(){
+  const t = THEMES[state.corTema] || THEMES.roxo;
+  const vars = t[state.theme==='dark'?'dark':'light'];
+  const root = document.documentElement.style;
+  root.setProperty('--gold', vars.gold);
+  root.setProperty('--gold-dim', vars.goldDim);
+  root.setProperty('--gold-contrast', vars.goldContrast);
+  root.setProperty('--gold-dim-contrast', vars.goldDimContrast);
+}
+
+function regenRevisoes(conteudoId, fromDate, replace){
+  if(replace!==false) state.revisoes = state.revisoes.filter(r=>r.conteudoId!==conteudoId);
+  const c = state.conteudos.find(x=>x.id===conteudoId);
+  if(!c) return;
+  state.revisaoIntervalos.forEach((days,idx)=>{
+    state.revisoes.push({id:nid(), conteudoId, disciplina:c.disciplina, titulo:c.nome, numero:idx, total:state.revisaoIntervalos.length, dataPrevista:addDaysStr(fromDate,days), dataBase:fromDate, feito:false, avulso:false});
+  });
+}
+
+// Retorna, de uma lista de revisões pendentes (feito:false), apenas a próxima de cada grupo
+// (mesmo conteúdo ou mesma revisão avulsa), para não repetir 1/4, 2/4, 3/4... ao mesmo tempo.
+function proximaRevisaoPorGrupo(list){
+  const map = new Map();
+  list.forEach(r=>{
+    const key = r.conteudoId ? ('c:'+r.conteudoId) : (r.avulsoGroupId ? ('a:'+r.avulsoGroupId) : ('id:'+r.id));
+    const atual = map.get(key);
+    if(!atual || r.numero < atual.numero) map.set(key, r);
+  });
+  return Array.from(map.values());
+}
+
+/* ============ RENDER DISPATCH ============ */
+function render(){
+  const app = document.getElementById('app');
+  const screens = {
+    home: renderHome, simulados: renderSimulados, calendario: renderCalendario,
+    leituras: renderLeituras, conteudos: renderConteudos, redacao: renderRedacao, revisoes: renderRevisoes,
+    ajustes: renderAjustes
+  };
+  app.innerHTML = screens[state.screen]();
+  document.getElementById('navHome').classList.toggle('active', state.screen==='home');
+  document.getElementById('navHome').querySelector('.navcircle').innerHTML = ic('home','icon-lg');
+  document.getElementById('navMenu').querySelector('.navcircle').innerHTML = ic('menu','icon-lg');
+  document.getElementById('navSync').querySelector('.navcircle').innerHTML = ic('sync','icon-lg');
+  renderMenuSheet();
+  renderOnboardSheet();
+}
+
+/* ============ ONBOARDING ============ */
+function renderOnboardSheet(){
+  const overlay = document.getElementById('onboardOverlay');
+  overlay.classList.toggle('open', state.showOnboarding);
+  if(!state.showOnboarding) return;
+  const steps = [
+    {icon:'layers', label:'Conteúdos', sub:'Cadastre suas matérias e marque os assuntos já estudados.'},
+    {icon:'chart', label:'Simulados', sub:'Registre resultados por disciplina e acompanhe sua evolução.'},
+    {icon:'calendar', label:'Calendário anual', sub:'Marque datas de inscrição e provas dos vestibulares.'},
+    {icon:'book', label:'Leituras obrigatórias', sub:'Controle os livros indicados para o vestibular.'},
+    {icon:'pen', label:'Redação', sub:'Registre temas, notas e frequência de treino.'},
+    {icon:'repeat', label:'Revisões', sub:'Acompanhe a repetição espaçada gerada automaticamente.'},
+  ];
+  let html = '<div class="sheet-title" style="font-size:18px;">Bem-vindo(a) ao SuperVest! 👋</div>';
+  html += '<div class="muted" style="margin-bottom:14px;">Esse é o seu espaço para organizar a reta final. Preencha cada seção abaixo para começar:</div>';
+  html += '<div>'+steps.map(s=>
+    '<div class="menu-item" style="cursor:default;"><span class="navcircle">'+ic(s.icon)+'</span>'+
+    '<div><div class="menu-item-title">'+s.label+'</div><div class="menu-item-sub">'+s.sub+'</div></div></div>'
+  ).join('')+'</div>';
+  html += '<button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="app.closeOnboarding()">'+ic('check2','icon-sm')+' Vamos começar</button>';
+  document.getElementById('onboardContent').innerHTML = html;
+}
+
+function topbar(eyebrow, title){
+  return '<div class="topbar"><div class="topbar-title">'+esc(title)+'</div></div>';
+}
+function topbarHome(eyebrow, title){
+  const themeIcon = (state.theme==='dark') ? 'sun' : 'moon';
+  return '<div class="topbar"><div class="topbar-eyebrow topbar-eyebrow-home">'+esc(eyebrow)+'</div>'+
+    '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">'+
+    '<div class="topbar-title">'+esc(title)+'</div>'+
+    '<button class="icon-btn" onclick="app.toggleTheme()" aria-label="Alternar modo noturno" style="flex-shrink:0;">'+ic(themeIcon,'icon-sm')+'</button>'+
+    '</div></div>';
+}
+
+/* ============ HOME ============ */
+function renderHome(){
+  const feitos = state.conteudos.filter(c=>c.feito).length;
+  const total = state.conteudos.length;
+  const progresso = total? Math.round(feitos/total*100) : 0;
+
+  const simsFeitos = state.simulados.filter(s=>s.resultados).sort((a,b)=>b.data.localeCompare(a.data));
+  let ultimoSimuladoPct = null;
+  if(simsFeitos.length){
+    const s = simsFeitos[0];
+    let ac=0, tt=0;
+    Object.values(s.resultados).forEach(r=>{ac+=r.acertos; tt+=r.total;});
+    ultimoSimuladoPct = tt? Math.round(ac/tt*100) : 0;
+  }
+  const redsOrdenadas = state.redacoes.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  const ultimaRedacaoPct = redsOrdenadas.length? Math.round(redsOrdenadas[0].nota/(redsOrdenadas[0].notaMax||1000)*100) : null;
+
+  const futuros = state.simulados.filter(s=>!s.resultados && diffDays(s.data)>=0).sort((a,b)=>a.data.localeCompare(b.data));
+  let simuladoTexto = '';
+  if(futuros.length){
+    const d = diffDays(futuros[0].data);
+    simuladoTexto = d===0 ? 'Hoje é dia de simulado! 🎯 ('+esc(futuros[0].nome)+')' : 'Próximo simulado ('+esc(futuros[0].nome)+') em '+d+' dia'+(d===1?'':'s');
+  }
+
+  const proximosEventos = state.calendario.filter(e=>diffDays(e.data)>=0).sort((a,b)=>a.data.localeCompare(b.data));
+  let compromissoTexto = '';
+  if(proximosEventos.length){
+    const ev = proximosEventos[0];
+    const d = diffDays(ev.data);
+    const label = TIPO_LABEL[ev.tipo] || 'Compromisso';
+    compromissoTexto = d===0 ? label+' de '+esc(ev.vestibular)+' é hoje!' : label+' '+esc(ev.vestibular)+' em '+d+' dia'+(d===1?'':'s');
+  }
+  const hojeAbrev = weekdayAbbrev(TODAY_STR);
+  const diaRedacao = state.redacaoFrequencia.includes(hojeAbrev);
+
+  // revisões pendentes (atrasadas + hoje)
+  const revDiscOptions = ['Todas', ...state.disciplinas];
+  const revsAtivas = proximaRevisaoPorGrupo(state.revisoes.filter(r=>!r.feito));
+  const revsPendentes = revsAtivas.filter(r=>diffDays(r.dataPrevista)<=0)
+    .filter(r=> state.homeRevisaoDisciplina==='Todas' || r.disciplina===state.homeRevisaoDisciplina)
+    .sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+
+  // próximos conteúdos
+  const contDisc = state.homeConteudoDisciplina || state.disciplinas[0];
+  const proximos = state.conteudos.filter(c=>!c.feito && c.disciplina===contDisc);
+
+  let html = topbarHome(fmtWeekdayLong(TODAY_STR), 'O que vai estudar hoje?');
+  html += '<div class="screen">';
+
+  html += '<div class="card"><div class="card-title">'+ic('target')+' Estatísticas</div>';
+  html += '<div class="stats-grid">';
+  html += '<div class="stat"><div class="stat-value">'+(ultimoSimuladoPct!==null? ultimoSimuladoPct+'%':'—')+'</div><div class="stat-label">Último<br>simulado</div></div>';
+  html += '<div class="stat"><div class="stat-value">'+(ultimaRedacaoPct!==null? ultimaRedacaoPct+'%':'—')+'</div><div class="stat-label">Última<br>redação</div></div>';
+  html += '<div class="stat"><div class="stat-value">'+progresso+'%</div><div class="stat-label">Progresso<br>geral</div></div>';
+  html += '</div></div>';
+
+  if(compromissoTexto) html += '<div class="banner banner-gold">'+ic('calendar')+' '+compromissoTexto+'</div>';
+  if(simuladoTexto) html += '<div class="banner banner-gold">'+ic('clock')+' '+simuladoTexto+'</div>';
+  if(diaRedacao) html += '<div class="banner banner-teal">'+ic('pen')+' Hoje é dia de redação!</div>';
+
+  const disciplinasHoje = state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
+  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Disciplinas hoje</div><span class="faint">'+esc(DIAS_FULL[hojeAbrev])+'</span></div>';
+  if(!disciplinasHoje.length){
+    html += '<div class="empty">Nenhuma disciplina programada para hoje. Configure a frequência na aba Conteúdos.</div>';
+  } else {
+    disciplinasHoje.forEach(d=>{
+      const total = state.conteudos.filter(c=>c.disciplina===d).length;
+      const feitos = state.conteudos.filter(c=>c.disciplina===d && c.feito).length;
+      html += '<div class="check-row" style="cursor:pointer;" onclick="app.gotoConteudoDisciplina(\''+esc(d).replace(/"/g,'&quot;')+'\')">'+
+        '<div style="width:2px;height:28px;background:var(--teal);border-radius:2px;flex-shrink:0;"></div>'+
+        '<div class="check-text"><div class="check-label">'+esc(d)+'</div><div class="check-sub">'+feitos+'/'+total+' conteúdos vistos</div></div></div>';
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('repeat')+' Revisões de hoje</div></div>';
+  html += '<select onchange="app.setHomeRevisaoDisciplina(this.value)">'+revDiscOptions.map(d=>'<option '+(d===state.homeRevisaoDisciplina?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
+  html += '<div style="margin-top:10px;">';
+  if(!revsPendentes.length){ html += '<div class="empty">Nenhuma revisão atrasada ou marcada para hoje 🎉</div>'; }
+  else revsPendentes.slice(0,8).forEach(r=>{
+    const atrasada = diffDays(r.dataPrevista)<0;
+    html += '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
+      '<div class="check-text"><div class="check-label">'+esc(r.titulo)+'</div><div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+'</div></div>'+
+      '<span class="badge '+(atrasada?'badge-coral':'badge-gold')+'">'+(atrasada?'atrasada':'hoje')+'</span></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Próximos conteúdos</div></div>';
+  if(!state.disciplinas.length){
+    html += '<div class="empty">Cadastre suas matérias na aba Conteúdos para começar.</div>';
+  } else {
+    html += '<select onchange="app.setHomeConteudoDisciplina(this.value)">'+state.disciplinas.map(d=>'<option '+(d===contDisc?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
+    html += '<div style="margin-top:10px;">';
+    if(!proximos.length){ html += '<div class="empty">Todos os conteúdos de '+esc(contDisc)+' já foram vistos ✅</div>'; }
+    else proximos.slice(0,8).forEach(c=>{
+      html += '<div class="check-row" onclick="app.toggleConteudo(\''+c.id+'\')"><div class="bubble"></div><div class="check-text"><div class="check-label">'+esc(c.nome)+'</div></div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ SIMULADOS ============ */
+function renderSimulados(){
+  let html = topbar('Controle', 'Simulados');
+  html += '<div class="screen">';
+
+  const editing = state.simuladoEditId ? state.simulados.find(s=>s.id===state.simuladoEditId) : null;
+  html += '<div class="add-toggle" onclick="app.'+(state.showAddSimulado?'cancelSimuladoForm':'showSimuladoForm')+'()">'+ic(state.showAddSimulado?'x':'plus')+' '+(state.showAddSimulado?'Fechar':'Novo simulado')+'</div>';
+  if(state.showAddSimulado){
+    html += '<div class="card">';
+    if(editing) html += '<div class="faint" style="margin-bottom:8px;">Editando simulado</div>';
+    html += '<div class="field-row"><div class="field"><label class="field-label">Vestibular</label><input type="text" id="simNome" placeholder="Ex: FUVEST" list="vestibularList" value="'+esc(editing?editing.nome:'')+'"></div>';
+    html += '<div class="field"><label class="field-label">Data</label><input type="date" id="simData" value="'+(editing?editing.data:TODAY_STR)+'"></div></div>';
+    html += '<datalist id="vestibularList">'+[...new Set(state.simulados.map(s=>s.nome))].map(n=>'<option value="'+esc(n)+'">').join('')+'</datalist>';
+    if(!state.disciplinas.length){
+      html += '<div class="faint">Cadastre matérias na aba Conteúdos para detalhar resultados por disciplina.</div>';
+    } else {
+      html += '<div class="field-label" style="margin-top:4px;">Acertos por disciplina</div>';
+      state.disciplinas.forEach(d=>{
+        const r = editing && editing.resultados && editing.resultados[d];
+        html += '<div class="field-row" style="align-items:center; margin-bottom:8px;"><div style="flex:1.4; font-size:12.5px; color:var(--text-dim);">'+esc(d)+'</div>'+
+          '<input type="number" min="0" style="flex:1;" id="acertos_'+d+'" placeholder="Acertos" value="'+(r?r.acertos:'')+'">'+
+          '<input type="number" min="0" style="flex:1;" id="total_'+d+'" placeholder="Total" value="'+(r?r.total:'')+'"></div>';
+      });
+    }
+    html += '<button class="btn btn-primary btn-block" onclick="app.addSimulado()">'+ic('check2','icon-sm')+' '+(editing?'Salvar alterações':'Salvar simulado')+'</button>';
+    html += '</div>';
+  }
+
+  const simsFeitos = state.simulados.filter(s=>s.resultados);
+  const vestibulares = ['Todos', ...new Set(state.simulados.map(s=>s.nome))];
+
+  html += '<div class="card"><div class="card-title">'+ic('chart')+' Desempenho ao longo do tempo</div>';
+  html += '<div class="field"><label class="field-label">Vestibular</label><select onchange="app.setChartVestibular(this.value)">'+vestibulares.map(v=>'<option '+(v===state.simuladoChartVestibular?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></div>';
+  html += '<div class="field"><label class="field-label">Disciplinas no gráfico</label><div class="multiselect">'+
+    '<span class="chip '+(state.simuladoChartGeral?'active':'')+'" style="'+(state.simuladoChartGeral?'background:var(--text-dim);color:#fff;border-color:var(--text-dim)':'')+'" onclick="app.toggleChartGeral()">Geral</span>'+
+    state.disciplinas.map(d=>{
+    const active = state.simuladoChartDisciplinas.includes(d);
+    return '<span class="chip '+(active?'active':'')+'" style="'+(active?'background:'+colorFor(d)+';color:#12172B;border-color:'+colorFor(d):'')+'" onclick="app.toggleChartDisciplina(\''+d+'\')">'+esc(d)+'</span>';
+  }).join('')+'</div></div>';
+  html += renderChartSVG(simsFeitos);
+  html += '</div>';
+
+  html += '<div class="section-label">Histórico</div>';
+  if(vestibulares.length>1){
+    html += '<div class="field" style="margin-bottom:10px;"><label class="field-label">Filtrar por prova</label>'+
+      '<select onchange="app.setSimuladoHistFiltro(this.value)">'+vestibulares.map(v=>'<option '+(v===state.simuladoHistFiltro?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></div>';
+  }
+  let ordenados = state.simulados.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  if(state.simuladoHistFiltro!=='Todos') ordenados = ordenados.filter(s=>s.nome===state.simuladoHistFiltro);
+  if(!ordenados.length) html += '<div class="empty">Nenhum simulado cadastrado ainda.</div>';
+  ordenados.forEach(s=>{
+    if(s.resultados){
+      let ac=0, tt=0; Object.values(s.resultados).forEach(r=>{ac+=r.acertos; tt+=r.total;});
+      const pct = tt? Math.round(ac/tt*100):0;
+      html += '<div class="content-card"><div class="content-card-head"><div><div class="content-card-title">'+esc(s.nome)+'</div><div class="content-card-sub">'+fmtBR(s.data)+'</div></div>'+
+        '<div class="row-actions"><span class="badge badge-gold" style="align-self:center;">'+pct+'%</span>'+
+        '<span class="icon-btn" onclick="app.editSimulado(\''+s.id+'\')">'+ic('pen','icon-sm')+'</span>'+
+        '<span class="icon-btn" onclick="app.removeSimulado(\''+s.id+'\')">'+ic('trash','icon-sm')+'</span></div></div>';
+      html += '<div class="legend">'+Object.entries(s.resultados).map(([d,r])=>'<span class="legend-item"><span class="legend-dot" style="background:'+colorFor(d)+'"></span>'+esc(d)+' '+r.acertos+'/'+r.total+'</span>').join('')+'</div>';
+      html += '</div>';
+    } else {
+      const d = diffDays(s.data);
+      html += '<div class="content-card"><div class="content-card-head"><div><div class="content-card-title">'+esc(s.nome)+'</div><div class="content-card-sub">'+fmtBR(s.data)+' · '+(d>=0?'em '+d+' dias':'')+'</div></div>'+
+        '<div class="row-actions"><span class="badge badge-neutral">agendado</span>'+
+        '<span class="icon-btn" onclick="app.editSimulado(\''+s.id+'\')">'+ic('pen','icon-sm')+'</span>'+
+        '<span class="icon-btn" onclick="app.removeSimulado(\''+s.id+'\')">'+ic('trash','icon-sm')+'</span></div></div></div>';
+    }
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function renderChartSVG(sims){
+  const filtered = sims.filter(s=> state.simuladoChartVestibular==='Todos' || s.nome===state.simuladoChartVestibular).sort((a,b)=>a.data.localeCompare(b.data));
+  const discs = state.simuladoChartDisciplinas;
+  const showGeral = state.simuladoChartGeral;
+  if(!filtered.length || (!discs.length && !showGeral)){
+    return '<div class="empty">Selecione ao menos uma disciplina (ou "Geral"), ou cadastre simulados para essa prova.</div>';
+  }
+  const W=384, H=180, padL=28, padR=10, padT=14, padB=24;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const n = filtered.length;
+  const xFor = i => padL + (n===1? plotW/2 : (plotW*i/(n-1)));
+  const yFor = pct => padT + plotH - (plotH*pct/100);
+
+  let svg = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" class="chart-svg">';
+  [0,25,50,75,100].forEach(g=>{
+    const y = yFor(g);
+    svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+    svg += '<text x="2" y="'+(y+3)+'" font-size="8" fill="#6B7194" font-family="Roboto">'+g+'</text>';
+  });
+  if(showGeral){
+    const pts = filtered.map((s,i)=>{
+      if(!s.resultados) return null;
+      let ac=0, tt=0;
+      Object.values(s.resultados).forEach(r=>{ac+=r.acertos; tt+=r.total;});
+      const pct = tt? Math.round(ac/tt*100) : null;
+      return pct===null? null : [xFor(i), yFor(pct)];
+    }).filter(Boolean);
+    if(pts.length>1){
+      const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+      svg += '<path d="'+path+'" fill="none" stroke="var(--text-dim)" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    pts.forEach(p=>{ svg += '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="var(--text-dim)"/>'; });
+  }
+  discs.forEach(d=>{
+    const pts = filtered.map((s,i)=>{
+      const r = s.resultados && s.resultados[d];
+      const pct = r? Math.round(r.acertos/r.total*100) : null;
+      return pct===null? null : [xFor(i), yFor(pct)];
+    }).filter(Boolean);
+    if(pts.length>1){
+      const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+      svg += '<path d="'+path+'" fill="none" stroke="'+colorFor(d)+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    pts.forEach(p=>{ svg += '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="'+colorFor(d)+'"/>'; });
+  });
+  filtered.forEach((s,i)=>{
+    svg += '<text x="'+xFor(i).toFixed(1)+'" y="'+(H-6)+'" font-size="7.5" fill="#6B7194" font-family="Roboto" text-anchor="middle">'+fmtShort(s.data)+'</text>';
+  });
+  svg += '</svg>';
+  const legendItems = (showGeral? ['<span class="legend-item"><span class="legend-dot" style="background:var(--text-dim)"></span>Geral</span>'] : [])
+    .concat(discs.map(d=>'<span class="legend-item"><span class="legend-dot" style="background:'+colorFor(d)+'"></span>'+esc(d)+'</span>'));
+  svg += '<div class="legend">'+legendItems.join('')+'</div>';
+  return svg;
+}
+
+/* ============ GRADE ============ */
+/* ============ CALENDARIO ============ */
+function renderCalendario(){
+  let html = topbar('Datas importantes', 'Calendário anual');
+  html += '<div class="screen">';
+
+  const editingEv = state.calendarioEditId ? state.calendario.find(e=>e.id===state.calendarioEditId) : null;
+  html += '<div class="add-toggle" onclick="app.'+(state.showAddEvento?'cancelEventoForm':'showEventoForm')+'()">'+ic(state.showAddEvento?'x':'plus')+' '+(state.showAddEvento?'Fechar':'Adicionar evento')+'</div>';
+  if(state.showAddEvento){
+    html += '<div class="card">';
+    if(editingEv) html += '<div class="faint" style="margin-bottom:8px;">Editando evento</div>';
+    html += '<div class="field"><label class="field-label">Tipo</label><select id="calTipo">'+Object.entries(TIPO_LABEL).map(([k,v])=>'<option value="'+k+'" '+(editingEv&&editingEv.tipo===k?'selected':'')+'>'+v+'</option>').join('')+'</select></div>';
+    html += '<div class="field"><label class="field-label">Nome</label><input type="text" id="calVestibular" placeholder="Ex: FUVEST ou Simulado ITA" value="'+(editingEv?esc(editingEv.vestibular):'')+'"></div>';
+    html += '<div class="field"><label class="field-label">Data</label><input type="date" id="calData" value="'+(editingEv?editingEv.data:TODAY_STR)+'"></div>';
+    html += '<button class="btn btn-primary btn-block" onclick="app.addEvento()">'+ic('check2','icon-sm')+' '+(editingEv?'Salvar alterações':'Salvar evento')+'</button>';
+    html += '</div>';
+  }
+
+  const ordenados = state.calendario.slice().sort((a,b)=>a.data.localeCompare(b.data));
+  let lastMonth = null;
+  if(!ordenados.length) html += '<div class="empty">Nenhuma data cadastrada.</div>';
+  ordenados.forEach(ev=>{
+    const m = monthLabel(ev.data);
+    if(m!==lastMonth){ html += '<div class="section-label">'+m+'</div>'; lastMonth=m; }
+    const d = diffDays(ev.data);
+    html += '<div class="content-card"><div class="content-card-head">'+
+      '<div><span class="badge '+TIPO_BADGE[ev.tipo]+'">'+TIPO_LABEL[ev.tipo]+'</span><div class="content-card-title" style="margin-top:6px;">'+esc(ev.vestibular)+'</div>'+
+      '<div class="content-card-sub">'+fmtBR(ev.data)+' · '+(d>=0? 'faltam '+d+' dias' : 'há '+(-d)+' dias')+'</div></div>'+
+      '<div class="row-actions"><span class="icon-btn" onclick="app.editEvento(\''+ev.id+'\')">'+ic('pen','icon-sm')+'</span>'+
+      '<span class="icon-btn" onclick="app.removeEvento(\''+ev.id+'\')">'+ic('trash','icon-sm')+'</span></div></div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ LEITURAS ============ */
+function renderLeituras(){
+  const feitos = state.leituras.filter(l=>l.feito).length;
+  const total = state.leituras.length;
+  let html = topbar('Vestibular', 'Leituras obrigatórias');
+  html += '<div class="screen">';
+
+  html += '<div class="card"><div class="card-title-left" style="margin-bottom:8px; display:flex; justify-content:space-between;"><span style="font-weight:700; font-size:13px;">Progresso de leitura</span><span class="faint">'+feitos+'/'+total+'</span></div>';
+  html += '<div class="progress-track"><div class="progress-fill" style="width:'+(total?Math.round(feitos/total*100):0)+'%"></div></div></div>';
+
+  html += '<div class="add-toggle" onclick="app.toggle(\'showAddLivro\')">'+ic('plus')+' '+(state.showAddLivro?'Fechar':'Adicionar livro')+'</div>';
+  if(state.showAddLivro){
+    html += '<div class="card">';
+    html += '<div class="field"><label class="field-label">Título</label><input type="text" id="livTitulo" placeholder="Ex: Dom Casmurro"></div>';
+    html += '<div class="field"><label class="field-label">Autor</label><input type="text" id="livAutor" placeholder="Ex: Machado de Assis"></div>';
+    html += '<button class="btn btn-primary btn-block" onclick="app.addLivro()">'+ic('check2','icon-sm')+' Salvar livro</button>';
+    html += '</div>';
+  }
+
+  html += '<div class="card">';
+  if(!state.leituras.length) html += '<div class="empty">Nenhum livro cadastrado.</div>';
+  state.leituras.forEach(l=>{
+    html += '<div class="check-row"><div onclick="app.toggleLivro(\''+l.id+'\')" style="display:flex; align-items:center; gap:12px; flex:1;">'+
+      '<div class="bubble '+(l.feito?'checked':'')+'"></div><div class="check-text"><div class="check-label '+(l.feito?'done':'')+'">'+esc(l.titulo)+'</div><div class="check-sub">'+esc(l.autor)+'</div></div></div>'+
+      '<span class="icon-btn" onclick="app.removeLivro(\''+l.id+'\')">'+ic('trash','icon-sm')+'</span></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+/* ============ CONTEUDOS ============ */
+function renderConteudos(){
+  let html = topbar('Base de estudos', 'Controle de conteúdos');
+  html += '<div class="screen">';
+
+  if(!state.disciplinas.length){
+    html += '<div class="card"><div class="empty">Nenhuma matéria cadastrada ainda. Adicione a primeira para começar a montar seu conteúdo.</div>'+
+      '<button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="app.promptNovaDisciplina()">'+ic('plus','icon-sm')+' Adicionar matéria</button></div>';
+    html += '</div>';
+    return html;
+  }
+
+  const disc = state.conteudoDisciplina || state.disciplinas[0];
+  if(state.conteudoDisciplina !== disc) state.conteudoDisciplina = disc;
+
+  html += '<div class="field-row" style="align-items:flex-end; margin-bottom:14px;">';
+  html += '<div class="field" style="margin-bottom:0; flex:1;"><label class="field-label">Matéria</label>'+
+    '<select onchange="app.setConteudoDisciplina(this.value)">'+state.disciplinas.map(d=>{
+      const cs = state.conteudos.filter(c=>c.disciplina===d);
+      const f = cs.filter(c=>c.feito).length;
+      return '<option value="'+esc(d)+'" '+(d===disc?'selected':'')+'>'+esc(d)+' · '+f+'/'+cs.length+'</option>';
+    }).join('')+'</select></div>';
+  html += '<div class="row-actions">'+
+    '<span class="icon-btn" title="Nova matéria" onclick="app.promptNovaDisciplina()">'+ic('plus','icon-sm')+'</span>'+
+    '<span class="icon-btn" title="Renomear matéria" onclick="app.editDisciplina(\''+esc(disc).replace(/"/g,'&quot;')+'\')">'+ic('pen','icon-sm')+'</span>'+
+    '<span class="icon-btn" title="Remover matéria" onclick="app.removeDisciplina(\''+esc(disc).replace(/"/g,'&quot;')+'\')">'+ic('trash','icon-sm')+'</span>'+
+  '</div></div>';
+
+  // dias da semana para estudar esta matéria
+  const freqDisc = state.conteudoFrequencia[disc] || [];
+  html += '<div class="card"><div class="card-title">'+ic('calendar')+' Frequência semanal</div>';
+  html += '<div class="muted" style="margin-bottom:10px;">Em quais dias você vai estudar '+esc(disc)+':</div>';
+  html += '<div class="day-row">'+DIAS.map(d=>{
+    const active = freqDisc.includes(d);
+    return '<div class="day-btn '+(active?'active':'')+'" onclick="app.toggleConteudoDia(\''+d+'\')">'+d+'</div>';
+  }).join('')+'</div></div>';
+
+  // botão para criar nova seção dentro da matéria atual
+  html += '<div class="add-toggle" onclick="app.toggle(\'showAddSecao\')">'+ic('plus')+' '+(state.showAddSecao?'Fechar':'Adicionar seção em '+esc(disc))+'</div>';
+  if(state.showAddSecao){
+    html += '<div class="card"><form onsubmit="event.preventDefault(); app.addSecao(); return false;"><div class="field"><label class="field-label">Nome da seção</label>'+
+      '<div style="display:flex; gap:8px;">'+
+      '<input type="text" id="secaoNome" placeholder="Ex: Dinâmica, Eletromagnetismo..." autofocus enterkeyhint="done">'+
+      '<button type="submit" class="icon-btn" style="background:var(--gold); color:var(--gold-contrast);">'+ic('plus','icon-sm')+'</button>'+
+      '</div></div></form></div>';
+  }
+
+  // seções da matéria atual
+  const secoesDisc = state.secoes.filter(s=>s.disciplina===disc);
+  secoesDisc.forEach(sec=>{
+    const cs = state.conteudos.filter(c=>c.disciplina===disc && c.secaoId===sec.id);
+    const f = cs.filter(c=>c.feito).length;
+    const aberta = !sec.colapsada;
+    const formAberto = state.showAddConteudo && state.addConteudoSecaoId===sec.id;
+
+    html += '<div class="card secao-card">';
+    html += '<div class="secao-header" onclick="app.toggleSecaoColapsada(\''+sec.id+'\')">'+
+      '<div class="secao-header-left">'+
+        '<span class="chev-toggle '+(aberta?'open':'')+'">'+ic('chevdown','icon-sm')+'</span>'+
+        '<span class="secao-nome">'+esc(sec.nome)+'</span>'+
+      '</div>'+
+      '<div class="secao-header-right">'+
+        '<span class="faint">'+f+'/'+cs.length+'</span>'+
+        '<span class="icon-btn" title="Editar seção" onclick="event.stopPropagation(); app.editSecao(\''+sec.id+'\')">'+ic('pen','icon-sm')+'</span>'+
+        '<span class="icon-btn" title="Remover seção" onclick="event.stopPropagation(); app.removeSecao(\''+sec.id+'\')">'+ic('trash','icon-sm')+'</span>'+
+      '</div></div>';
+
+    if(aberta){
+      html += '<div class="secao-body">';
+      if(!cs.length) html += '<div class="empty">Nenhum conteúdo nesta seção ainda.</div>';
+      cs.forEach(c=>{
+        html += '<div class="check-row"><div onclick="app.toggleConteudo(\''+c.id+'\')" style="display:flex; align-items:center; gap:12px; flex:1;">'+
+          '<div class="bubble '+(c.feito?'checked':'')+'"></div><div class="check-text"><div class="check-label '+(c.feito?'done':'')+'">'+esc(c.nome)+'</div>'+
+          (c.feito?'<div class="check-sub">Visto em '+fmtBR(c.dataFeito)+'</div>':'')+'</div></div>'+
+          '<span class="icon-btn" onclick="app.removeConteudo(\''+c.id+'\')">'+ic('trash','icon-sm')+'</span></div>';
+      });
+      html += '<div class="secao-add-toggle" onclick="app.toggleAddConteudo(\''+sec.id+'\')">'+ic('plus','icon-sm')+' '+(formAberto?'Fechar':'Inserir conteúdo nesta seção')+'</div>';
+      if(formAberto){
+        html += '<form onsubmit="event.preventDefault(); app.addConteudo(); return false;" style="margin-top:10px;"><div class="field" style="margin-bottom:4px;">'+
+          '<div style="display:flex; gap:8px;">'+
+          '<input type="text" id="contNome" placeholder="Digite e pressione Enter" autofocus enterkeyhint="done">'+
+          '<button type="submit" class="icon-btn" style="background:var(--gold); color:var(--gold-contrast);">'+ic('plus','icon-sm')+'</button>'+
+          '</div></div></form>'+
+          '<div class="faint">Cada Enter adiciona um conteúdo nesta seção.</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  // conteúdos sem seção
+  const semSecao = state.conteudos.filter(c=>c.disciplina===disc && !c.secaoId);
+  const formGeralAberto = state.showAddConteudo && !state.addConteudoSecaoId;
+  if(semSecao.length || !secoesDisc.length){
+    const f2 = semSecao.filter(c=>c.feito).length;
+    html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' '+(secoesDisc.length?'Sem seção':esc(disc))+'</div><span class="faint">'+f2+'/'+semSecao.length+'</span></div>';
+    if(!semSecao.length) html += '<div class="empty">Nenhum conteúdo cadastrado aqui.</div>';
+    semSecao.forEach(c=>{
+      html += '<div class="check-row"><div onclick="app.toggleConteudo(\''+c.id+'\')" style="display:flex; align-items:center; gap:12px; flex:1;">'+
+        '<div class="bubble '+(c.feito?'checked':'')+'"></div><div class="check-text"><div class="check-label '+(c.feito?'done':'')+'">'+esc(c.nome)+'</div>'+
+        (c.feito?'<div class="check-sub">Visto em '+fmtBR(c.dataFeito)+'</div>':'')+'</div></div>'+
+        '<span class="icon-btn" onclick="app.removeConteudo(\''+c.id+'\')">'+ic('trash','icon-sm')+'</span></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="add-toggle" onclick="app.toggleAddConteudo(null)">'+ic('plus')+' '+(formGeralAberto?'Fechar':'Adicionar conteúdo sem seção')+'</div>';
+    if(formGeralAberto){
+      html += '<div class="card"><form onsubmit="event.preventDefault(); app.addConteudo(); return false;"><div class="field"><label class="field-label">Nome do conteúdo</label>'+
+        '<div style="display:flex; gap:8px;">'+
+        '<input type="text" id="contNome" placeholder="Digite e pressione Enter" autofocus enterkeyhint="done">'+
+        '<button type="submit" class="icon-btn" style="background:var(--gold); color:var(--gold-contrast);">'+ic('plus','icon-sm')+'</button>'+
+        '</div></div></form>'+
+        '<div class="faint">Cada Enter adiciona um conteúdo. Toque em "Fechar" acima quando terminar.</div></div>';
+    }
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ REDACAO ============ */
+function renderRedacao(){
+  let html = topbar('Escrita', 'Redação');
+  html += '<div class="screen">';
+
+  html += '<div class="card"><div class="card-title">'+ic('calendar')+' Frequência semanal</div>';
+  html += '<div class="muted" style="margin-bottom:10px;">Em quais dias você vai escrever redação:</div>';
+  html += '<div class="day-row">'+DIAS.map(d=>{
+    const active = state.redacaoFrequencia.includes(d);
+    return '<div class="day-btn '+(active?'active':'')+'" onclick="app.toggleRedacaoDia(\''+d+'\')">'+d+'</div>';
+  }).join('')+'</div></div>';
+
+  const editingRed = state.redacaoEditId ? state.redacoes.find(r=>r.id===state.redacaoEditId) : null;
+  html += '<div class="add-toggle" onclick="app.'+(state.showAddRedacao?'cancelRedacaoForm':'showRedacaoForm')+'()">'+ic(state.showAddRedacao?'x':'plus')+' '+(state.showAddRedacao?'Fechar':'Nova redação')+'</div>';
+  if(state.showAddRedacao){
+    html += '<div class="card">';
+    if(editingRed) html += '<div class="faint" style="margin-bottom:8px;">Editando redação</div>';
+    html += '<div class="field"><label class="field-label">Tema</label><input type="text" id="redTema" placeholder="Ex: Educação financeira nas escolas" value="'+(editingRed?esc(editingRed.tema):'')+'"></div>';
+    html += '<div class="field"><label class="field-label">Banca</label><input type="text" id="redBanca" placeholder="Ex: ENEM, FUVEST, CESPE" list="bancaList" value="'+(editingRed?esc(editingRed.banca||''):'')+'"></div>';
+    html += '<datalist id="bancaList">'+[...new Set(state.redacoes.map(r=>r.banca).filter(Boolean))].map(b=>'<option value="'+esc(b)+'">').join('')+'</datalist>';
+    html += '<div class="field-row"><div class="field"><label class="field-label">Data</label><input type="date" id="redData" value="'+(editingRed?editingRed.data:TODAY_STR)+'"></div>'+
+      '<div class="field"><label class="field-label">Nota máxima</label><input type="number" min="1" id="redNotaMax" placeholder="Ex: 1000" value="'+(editingRed?editingRed.notaMax:1000)+'"></div></div>';
+    html += '<div class="field"><label class="field-label">Nota obtida</label><input type="number" min="0" id="redNota" placeholder="Ex: 840" value="'+(editingRed?editingRed.nota:'')+'"></div>';
+    html += '<div class="field"><label class="field-label">Tempo gasto (minutos)</label><input type="number" min="0" id="redTempo" placeholder="Ex: 65" value="'+(editingRed?editingRed.tempo:'')+'"></div>';
+    html += '<div class="field"><label class="field-label">Erros / pontos de atenção</label><textarea id="redErros" placeholder="Ex: Repetição de conectivos...">'+(editingRed?esc(editingRed.erros):'')+'</textarea></div>';
+    html += '<button class="btn btn-primary btn-block" onclick="app.addRedacao()">'+ic('check2','icon-sm')+' '+(editingRed?'Salvar alterações':'Salvar redação')+'</button>';
+    html += '</div>';
+  }
+
+  html += '<div class="section-label">Histórico</div>';
+  const bancasDisponiveis = ['Todas', ...new Set(state.redacoes.map(r=>r.banca).filter(Boolean))];
+  if(state.redacoes.length){
+    html += '<div class="field-row" style="margin-bottom:10px;">'+
+      '<div class="field" style="margin-bottom:0;"><label class="field-label">Banca</label><select onchange="app.setRedacaoFiltroBanca(this.value)">'+bancasDisponiveis.map(b=>'<option '+(b===state.redacaoFiltroBanca?'selected':'')+'>'+esc(b)+'</option>').join('')+'</select></div>'+
+      '<div class="field" style="margin-bottom:0;"><label class="field-label">Data</label><input type="date" value="'+esc(state.redacaoFiltroData)+'" onchange="app.setRedacaoFiltroData(this.value)"></div>'+
+      '</div>';
+    if(state.redacaoFiltroBanca!=='Todas' || state.redacaoFiltroData){
+      html += '<div class="faint" style="margin:-4px 0 10px; cursor:pointer;" onclick="app.limparFiltroRedacao()">'+ic('x','icon-sm')+' Limpar filtros</div>';
+    }
+  }
+  let ord = state.redacoes.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  if(state.redacaoFiltroBanca!=='Todas') ord = ord.filter(r=>r.banca===state.redacaoFiltroBanca);
+  if(state.redacaoFiltroData) ord = ord.filter(r=>r.data===state.redacaoFiltroData);
+  if(!ord.length) html += '<div class="empty">Nenhuma redação encontrada.</div>';
+  ord.forEach(r=>{
+    html += '<div class="content-card"><div class="content-card-head"><div><div class="content-card-title">'+esc(r.tema)+'</div>'+
+      '<div class="content-card-sub">'+fmtBR(r.data)+(r.banca?' · '+esc(r.banca):'')+' · '+r.tempo+' min</div></div>'+
+      '<div class="row-actions"><span class="badge badge-gold">'+r.nota+'/'+(r.notaMax||1000)+'</span>'+
+      '<span class="icon-btn" onclick="app.editRedacao(\''+r.id+'\')">'+ic('pen','icon-sm')+'</span>'+
+      '<span class="icon-btn" onclick="app.removeRedacao(\''+r.id+'\')">'+ic('trash','icon-sm')+'</span></div></div>'+
+      '<div class="muted" style="margin-top:6px;">'+esc(r.erros)+'</div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ REVISOES ============ */
+function renderRevisoes(){
+  let html = topbar('Repetição espaçada', 'Revisões');
+  html += '<div class="screen">';
+
+  html += '<div class="card">';
+  html += '<div class="card-title"><div class="card-title-left">'+ic('repeat')+' Intervalos de revisão</div>'+
+    '<span class="icon-btn" onclick="app.toggle(\'showIntervalConfig\')">'+ic(state.showIntervalConfig?'chevleft':'plus','icon-sm')+'</span></div>';
+  html += '<div class="muted">Dias após marcar um conteúdo como visto: '+state.revisaoIntervalos.join(', ')+'.</div>';
+  if(state.showIntervalConfig){
+    html += '<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">';
+    state.revisaoIntervalos.forEach((n,idx)=>{
+      html += '<span class="interval-chip">'+n+'d <button onclick="app.removeIntervalo('+idx+')">'+ic('x','icon-sm')+'</button></span>';
+    });
+    html += '</div><div class="field-row" style="margin-top:10px;"><input type="number" min="1" id="novoIntervalo" placeholder="Novo intervalo (dias)"><button class="btn" onclick="app.addIntervalo()">'+ic('plus','icon-sm')+'</button></div>';
+    html += '<div class="faint" style="margin-top:6px;">Alterações valem para conteúdos marcados a partir de agora, ou use "reiniciar" para recalcular um conteúdo já em andamento — a data original de estudo é mantida e as marcações de revisão feitas são desfeitas.</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="field-row" style="margin-bottom:10px;"><div class="field" style="margin-bottom:0;">'+
+    '<select onchange="app.setRevisaoFiltro(this.value)">'+['Todas',...state.disciplinas,'Avulsas'].map(d=>'<option '+(d===state.revisaoFiltro?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select></div>'+
+    '<button class="btn btn-sm" onclick="app.toggle(\'showAddAvulso\')">'+ic('plus','icon-sm')+' Avulsa</button></div>';
+
+  if(state.showAddAvulso){
+    html += '<div class="card">';
+    html += '<div class="field"><label class="field-label">Título</label><input type="text" id="avTitulo" placeholder="Ex: Revisar fórmulas de área"></div>';
+    html += '<div class="field-row"><div class="field"><label class="field-label">Disciplina</label><select id="avDisciplina"><option value="">Independente (sem matéria)</option>'+state.disciplinas.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('')+'</select></div>'+
+      '<div class="field"><label class="field-label">Data</label><input type="date" id="avData" value="'+TODAY_STR+'"></div></div>';
+    html += '<button class="btn btn-primary btn-block" onclick="app.addAvulso()">'+ic('check2','icon-sm')+' Salvar revisão avulsa</button>';
+    html += '</div>';
+  }
+
+  const filtro = r => state.revisaoFiltro==='Todas' ? true : (state.revisaoFiltro==='Avulsas'? r.avulso : r.disciplina===state.revisaoFiltro);
+  const all = state.revisoes.filter(filtro);
+  const ativas = proximaRevisaoPorGrupo(all.filter(r=>!r.feito));
+  const atrasadas = ativas.filter(r=>diffDays(r.dataPrevista)<0).sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+  const hoje = ativas.filter(r=>diffDays(r.dataPrevista)===0);
+  const proximos30 = ativas.filter(r=>diffDays(r.dataPrevista)>0 && diffDays(r.dataPrevista)<=30).sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+  const futuras = ativas.filter(r=>diffDays(r.dataPrevista)>30).sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+  const concluidas = all.filter(r=>r.feito).sort((a,b)=>b.dataPrevista.localeCompare(a.dataPrevista));
+
+  function revItem(r){
+    const d = diffDays(r.dataPrevista);
+    return '<div class="list-item"><div onclick="app.toggleRevisao(\''+r.id+'\')" style="display:flex; align-items:center; gap:12px; flex:1; cursor:pointer;">'+
+      '<div class="bubble '+(r.feito?'checked':'')+'"></div><div class="check-text"><div class="check-label '+(r.feito?'done':'')+'">'+esc(r.titulo)+'</div>'+
+      '<div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+(r.avulso?' (avulsa)':'')+' · '+fmtBR(r.dataPrevista)+'</div></div></div>'+
+      (r.conteudoId ? '<span class="icon-btn" title="Reiniciar" onclick="app.reiniciarConteudo(\''+r.conteudoId+'\')">'+ic('repeat','icon-sm')+'</span>' : '')+
+      '</div>';
+  }
+
+  if(atrasadas.length){ html += '<div class="section-label"><span class="sq" style="background:var(--coral)"></span>Atrasadas ('+atrasadas.length+')</div><div class="card" style="padding:6px 14px;">'+atrasadas.map(revItem).join('')+'</div>'; }
+  if(hoje.length){ html += '<div class="section-label"><span class="sq" style="background:var(--gold)"></span>Hoje ('+hoje.length+')</div><div class="card" style="padding:6px 14px;">'+hoje.map(revItem).join('')+'</div>'; }
+  if(proximos30.length){ html += '<div class="section-label"><span class="sq" style="background:var(--teal)"></span>Próximos 30 dias ('+proximos30.length+')</div><div class="card" style="padding:6px 14px;">'+proximos30.map(revItem).join('')+'</div>'; }
+  if(futuras.length){ html += '<div class="section-label"><span class="sq" style="background:var(--purple)"></span>Futuras ('+futuras.length+')</div><div class="card" style="padding:6px 14px;">'+futuras.map(revItem).join('')+'</div>'; }
+  if(!atrasadas.length && !hoje.length && !proximos30.length && !futuras.length) html += '<div class="empty">Nenhuma revisão pendente por aqui 🎉</div>';
+
+  if(concluidas.length){
+    html += '<div class="add-toggle" style="border-style:solid;" onclick="app.toggle(\'showConcluidas\')">'+(state.showConcluidas?'Ocultar':'Mostrar')+' '+concluidas.length+' concluída'+(concluidas.length===1?'':'s')+'</div>';
+    if(state.showConcluidas) html += '<div class="card" style="padding:6px 14px;">'+concluidas.map(revItem).join('')+'</div>';
+  }
+
+  html += '<button class="btn btn-danger btn-block" style="margin-top:6px;" onclick="app.reiniciarTodas()">'+ic('repeat','icon-sm')+' Reiniciar todas as revisões</button>';
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ AJUSTES ============ */
+function renderAjustes(){
+  let html = topbar('Preferências', 'Ajustes');
+  html += '<div class="screen">';
+
+  // Backup manual
+  html += '<div class="card"><div class="card-title">'+ic('sync')+' Backup dos dados</div>';
+  html += '<div class="muted" style="margin-bottom:10px;">Seus dados ficam salvos neste dispositivo. Exporte um arquivo de backup de vez em quando para não correr risco de perdê-los.</div>';
+  html += '<div style="display:flex; gap:8px;">'+
+    '<button class="btn" style="flex:1;" onclick="app.exportData()">Exportar backup</button>'+
+    '<button class="btn" style="flex:1;" onclick="document.getElementById(\'importFile\').click()">Importar backup</button>'+
+  '</div></div>';
+
+  // Backup automático
+  html += '<div class="card">';
+  html += '<div class="switch-row"><div><div class="switch-label">Backup automático</div>'+
+    '<div class="switch-sub">Baixa um backup sozinho a cada X dias ao abrir o app</div></div>'+
+    '<div class="switch '+(state.backupAutoAtivo?'on':'')+'" onclick="app.toggleBackupAuto()"></div></div>';
+  if(state.backupAutoAtivo){
+    html += '<div class="field" style="margin-top:10px;"><label class="field-label">A cada quantos dias</label>'+
+      '<input type="number" min="1" value="'+state.backupAutoDias+'" onchange="app.setBackupAutoDias(this.value)"></div>';
+    html += '<div class="faint">Último backup automático: '+(state.backupAutoUltima?fmtBR(state.backupAutoUltima):'ainda não realizado')+'</div>';
+  }
+  html += '</div>';
+
+  // Abas visíveis
+  html += '<div class="card"><div class="card-title">'+ic('layers')+' Abas visíveis no menu</div>';
+  html += '<div class="muted" style="margin-bottom:6px;">Escolha quais abas aparecem no menu. Home e Ajustes ficam sempre visíveis.</div>';
+  MENU_TABS.forEach(it=>{
+    if(it.locked) return;
+    const visivel = !state.abasOcultas.includes(it.k);
+    html += '<div class="switch-row"><div><div class="switch-label">'+esc(it.label)+'</div></div>'+
+      '<div class="switch '+(visivel?'on':'')+'" onclick="app.toggleAbaOculta(\''+it.k+'\')"></div></div>';
+  });
+  html += '</div>';
+
+  // Cor do tema
+  html += '<div class="card"><div class="card-title">'+ic('sun')+' Cor do tema</div>';
+  html += '<div class="muted" style="margin-bottom:4px;">Escolha a cor de destaque do app.</div>';
+  html += '<div class="swatch-row">'+Object.entries(THEMES).map(([k,t])=>
+    '<div class="swatch '+(state.corTema===k?'active':'')+'" style="background:'+t.swatch+';" title="'+esc(t.label)+'" onclick="app.setCorTema(\''+k+'\')"></div>'
+  ).join('')+'</div>';
+  if(state.darkAutoAtivo){
+    html += '<div class="faint" style="margin-top:14px;">'+ic('moon','icon-sm')+' Modo escuro controlado automaticamente (veja abaixo)</div>';
+  } else {
+    html += '<div class="switch-row" style="margin-top:14px;"><div><div class="switch-label">Modo escuro</div></div>'+
+      '<div class="switch '+(state.theme==='dark'?'on':'')+'" onclick="app.toggleTheme()"></div></div>';
+  }
+  html += '</div>';
+
+  // Modo noturno automático
+  html += '<div class="card"><div class="card-title">'+ic('moon')+' Modo noturno automático</div>';
+  html += '<div class="switch-row"><div><div class="switch-label">Ativar por horário</div>'+
+    '<div class="switch-sub">Liga e desliga o modo escuro sozinho no horário escolhido</div></div>'+
+    '<div class="switch '+(state.darkAutoAtivo?'on':'')+'" onclick="app.toggleDarkAuto()"></div></div>';
+  if(state.darkAutoAtivo){
+    html += '<div class="field-row" style="margin-top:10px;">'+
+      '<div class="field"><label class="field-label">Ativar às</label><input type="time" value="'+esc(state.darkAutoInicio)+'" onchange="app.setDarkAutoInicio(this.value)"></div>'+
+      '<div class="field"><label class="field-label">Desativar às</label><input type="time" value="'+esc(state.darkAutoFim)+'" onchange="app.setDarkAutoFim(this.value)"></div>'+
+      '</div>';
+  }
+  html += '</div>';
+
+  // Zona de perigo
+  html += '<div class="card"><div class="card-title">'+ic('trash')+' Zona de perigo</div>';
+  html += '<div class="muted" style="margin-bottom:10px;">Resetar o aplicativo apaga permanentemente todos os dados salvos neste dispositivo.</div>';
+  html += '<button class="btn btn-danger btn-block" onclick="app.resetApp()">'+ic('trash','icon-sm')+' Resetar aplicativo</button>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+/* ============ MENU SHEET ============ */
+const MENU_TABS = [
+  {k:'home', icon:'home', label:'Home', sub:'Visão geral e pendências', locked:true},
+  {k:'conteudos', icon:'layers', label:'Conteúdos', sub:'Matérias e tópicos'},
+  {k:'revisoes', icon:'repeat', label:'Revisões', sub:'Repetição espaçada'},
+  {k:'calendario', icon:'calendar', label:'Calendário anual', sub:'Datas de provas e inscrições'},
+  {k:'leituras', icon:'book', label:'Leituras obrigatórias', sub:'Checklist de livros'},
+  {k:'simulados', icon:'chart', label:'Simulados', sub:'Desempenho por prova'},
+  {k:'redacao', icon:'pen', label:'Redação', sub:'Temas, notas e frequência'},
+  {k:'ajustes', icon:'gear', label:'Ajustes', sub:'Backup, abas e tema', locked:true},
+];
+function renderMenuSheet(){
+  const overlay = document.getElementById('menuOverlay');
+  overlay.classList.toggle('open', state.menuOpen);
+  const items = MENU_TABS.filter(it=> it.locked || !state.abasOcultas.includes(it.k));
+  document.getElementById('menuList').innerHTML = items.map(it=>
+    '<div class="menu-item" onclick="app.goto(\''+it.k+'\')"><span class="navcircle">'+ic(it.icon)+'</span>'+
+    '<div class="menu-item-title">'+it.label+'</div></div>'
+  ).join('');
+}
+
+/* ============ ACTIONS ============ */
+const app = {
+  goto(screen){
+    if(screen!==state.screen){
+      try{
+        if(state.screen==='home' && screen!=='home'){
+          history.pushState({screen:screen}, '');
+        } else if(screen==='home' && state.screen!=='home'){
+          history.replaceState({screen:'home'}, '');
+        }
+      }catch(e){}
+    }
+    state.screen=screen; state.menuOpen=false; render(); window.scrollTo(0,0);
+  },
+  toggleMenu(){ state.menuOpen=!state.menuOpen; render(); },
+  toggleTheme(){
+    state.theme = state.theme==='dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', state.theme);
+    try{ localStorage.setItem('painelEstudos_theme', state.theme); }catch(e){}
+    applyCorTema();
+    render();
+  },
+  setCorTema(k){
+    if(!THEMES[k]) return;
+    state.corTema = k;
+    try{ localStorage.setItem('painelEstudos_cor', k); }catch(e){}
+    applyCorTema();
+    render();
+  },
+  toggleAbaOculta(k){
+    const i = state.abasOcultas.indexOf(k);
+    if(i>=0) state.abasOcultas.splice(i,1); else state.abasOcultas.push(k);
+    try{ localStorage.setItem('painelEstudos_abasOcultas', JSON.stringify(state.abasOcultas)); }catch(e){}
+    if(state.screen===k && i<0) state.screen='home';
+    render();
+  },
+  toggleBackupAuto(){
+    state.backupAutoAtivo = !state.backupAutoAtivo;
+    saveBackupAutoPrefs();
+    render();
+  },
+  setBackupAutoDias(v){
+    const n = parseInt(v);
+    if(!n || n<1) return;
+    state.backupAutoDias = n;
+    saveBackupAutoPrefs();
+  },
+  closeOnboarding(){
+    state.showOnboarding=false;
+    try{ localStorage.setItem('painelEstudos_onboarded','1'); }catch(e){}
+    app.goto('conteudos');
+  },
+  closeMenuBg(e){ if(e.target.id==='menuOverlay'){ state.menuOpen=false; render(); } },
+  toggle(key){ state[key]=!state[key]; render(); },
+  exportData(){
+    downloadBackupFile();
+  },
+  importData(file){
+    if(!file) return;
+    if(!confirm('Importar este backup vai substituir todos os dados atuais salvos neste dispositivo. Continuar?')) {
+      document.getElementById('importFile').value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const data = JSON.parse(e.target.result);
+        Object.assign(state, data);
+        if(data.UID) UID = data.UID;
+        saveData();
+        state.menuOpen = false;
+        render();
+        alert('Backup importado com sucesso!');
+      }catch(err){
+        alert('Não foi possível ler este arquivo. Verifique se é um backup válido do SuperVest.');
+      }
+      document.getElementById('importFile').value = '';
+    };
+    reader.readAsText(file);
+  },
+  sync(){
+    saveData();
+    const circle = document.querySelector('#navSync .navcircle');
+    circle.classList.add('spinning');
+    setTimeout(()=>circle.classList.remove('spinning'), 800);
+    const t = document.getElementById('toast');
+    t.innerHTML = ic('check2','icon-sm')+' Dados salvos e sincronizados';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  },
+
+  // home
+  setHomeRevisaoDisciplina(v){ state.homeRevisaoDisciplina=v; render(); },
+  setHomeConteudoDisciplina(v){ state.homeConteudoDisciplina=v; render(); },
+
+  // simulados
+  setChartVestibular(v){ state.simuladoChartVestibular=v; render(); },
+  toggleChartDisciplina(d){
+    const i = state.simuladoChartDisciplinas.indexOf(d);
+    if(i>=0) state.simuladoChartDisciplinas.splice(i,1); else state.simuladoChartDisciplinas.push(d);
+    render();
+  },
+  toggleChartGeral(){ state.simuladoChartGeral = !state.simuladoChartGeral; render(); },
+  showSimuladoForm(){ state.showAddSimulado=true; state.simuladoEditId=null; render(); },
+  cancelSimuladoForm(){ state.showAddSimulado=false; state.simuladoEditId=null; render(); },
+  editSimulado(id){ state.showAddSimulado=true; state.simuladoEditId=id; render(); window.scrollTo(0,0); },
+  setSimuladoHistFiltro(v){ state.simuladoHistFiltro=v; render(); },
+  addSimulado(){
+    const nome = document.getElementById('simNome').value.trim();
+    const data = document.getElementById('simData').value;
+    if(!nome || !data){ alert('Preencha o nome do vestibular e a data.'); return; }
+    const resultados = {};
+    let any=false;
+    state.disciplinas.forEach(d=>{
+      const ac = parseInt(document.getElementById('acertos_'+d).value);
+      const tt = parseInt(document.getElementById('total_'+d).value);
+      if(!isNaN(ac) && !isNaN(tt) && tt>0){ resultados[d]={acertos:ac,total:tt}; any=true; }
+    });
+    if(state.simuladoEditId){
+      const s = state.simulados.find(x=>x.id===state.simuladoEditId);
+      if(s){ s.nome=nome; s.data=data; s.resultados = any?resultados:null; }
+    } else {
+      state.simulados.push({id:nid(), nome, data, resultados: any?resultados:null});
+    }
+    state.showAddSimulado=false;
+    state.simuladoEditId=null;
+    render();
+  },
+  removeSimulado(id){ if(!confirm('Remover este simulado?')) return; state.simulados = state.simulados.filter(s=>s.id!==id); render(); },
+
+  // calendario
+  showEventoForm(){ state.showAddEvento=true; state.calendarioEditId=null; render(); },
+  cancelEventoForm(){ state.showAddEvento=false; state.calendarioEditId=null; render(); },
+  editEvento(id){ state.showAddEvento=true; state.calendarioEditId=id; render(); window.scrollTo(0,0); },
+  addEvento(){
+    const tipo = document.getElementById('calTipo').value;
+    const vestibular = document.getElementById('calVestibular').value.trim();
+    const data = document.getElementById('calData').value;
+    if(!vestibular || !data){ alert('Preencha o vestibular e a data.'); return; }
+    if(state.calendarioEditId){
+      const ev = state.calendario.find(x=>x.id===state.calendarioEditId);
+      if(ev){ Object.assign(ev, {tipo, vestibular, data}); }
+    } else {
+      state.calendario.push({id:nid(), tipo, vestibular, data});
+    }
+    state.showAddEvento=false;
+    state.calendarioEditId=null;
+    render();
+  },
+  removeEvento(id){ if(!confirm('Remover este evento?')) return; state.calendario = state.calendario.filter(e=>e.id!==id); render(); },
+
+  // leituras
+  addLivro(){
+    const titulo = document.getElementById('livTitulo').value.trim();
+    const autor = document.getElementById('livAutor').value.trim();
+    if(!titulo){ alert('Informe o título do livro.'); return; }
+    state.leituras.push({id:nid(), titulo, autor, feito:false});
+    state.showAddLivro=false;
+    render();
+  },
+  toggleLivro(id){ const l = state.leituras.find(x=>x.id===id); l.feito=!l.feito; render(); },
+  removeLivro(id){ state.leituras = state.leituras.filter(l=>l.id!==id); render(); },
+
+  // conteudos
+  setConteudoDisciplina(d){ state.conteudoDisciplina=d; state.showAddConteudo=false; state.addConteudoSecaoId=null; state.showAddSecao=false; render(); },
+  toggleConteudoDia(d){
+    const disc = state.conteudoDisciplina;
+    if(!disc) return;
+    if(!state.conteudoFrequencia[disc]) state.conteudoFrequencia[disc]=[];
+    const arr = state.conteudoFrequencia[disc];
+    const i = arr.indexOf(d);
+    if(i>=0) arr.splice(i,1); else arr.push(d);
+    render();
+  },
+  gotoConteudoDisciplina(d){
+    state.conteudoDisciplina = d;
+    state.showAddConteudo=false; state.addConteudoSecaoId=null; state.showAddSecao=false;
+    app.goto('conteudos');
+  },
+  promptNovaDisciplina(){
+    const nome = prompt('Nome da nova disciplina:');
+    if(nome && nome.trim() && !state.disciplinas.includes(nome.trim())){
+      state.disciplinas.push(nome.trim());
+      state.conteudoDisciplina = nome.trim();
+      render();
+    }
+  },
+  editDisciplina(oldName){
+    const novo = prompt('Renomear matéria:', oldName);
+    if(novo===null) return;
+    const nome = novo.trim();
+    if(!nome || nome===oldName) return;
+    if(state.disciplinas.includes(nome)){ alert('Já existe uma matéria com esse nome.'); return; }
+    const idx = state.disciplinas.indexOf(oldName);
+    if(idx>=0) state.disciplinas[idx]=nome;
+    state.conteudos.forEach(c=>{ if(c.disciplina===oldName) c.disciplina=nome; });
+    state.secoes.forEach(s=>{ if(s.disciplina===oldName) s.disciplina=nome; });
+    if(state.conteudoFrequencia[oldName]){ state.conteudoFrequencia[nome]=state.conteudoFrequencia[oldName]; delete state.conteudoFrequencia[oldName]; }
+    state.revisoes.forEach(r=>{ if(r.disciplina===oldName) r.disciplina=nome; });
+    state.simulados.forEach(s=>{ if(s.resultados && s.resultados[oldName]){ s.resultados[nome]=s.resultados[oldName]; delete s.resultados[oldName]; } });
+    if(state.conteudoDisciplina===oldName) state.conteudoDisciplina=nome;
+    if(state.homeConteudoDisciplina===oldName) state.homeConteudoDisciplina=nome;
+    if(state.homeRevisaoDisciplina===oldName) state.homeRevisaoDisciplina=nome;
+    if(state.revisaoFiltro===oldName) state.revisaoFiltro=nome;
+    const ci = state.simuladoChartDisciplinas.indexOf(oldName);
+    if(ci>=0) state.simuladoChartDisciplinas[ci]=nome;
+    render();
+  },
+  removeDisciplina(nome){
+    if(!confirm('Remover a matéria "'+nome+'" e todo o conteúdo, revisões e resultados associados a ela?')) return;
+    state.disciplinas = state.disciplinas.filter(d=>d!==nome);
+    state.conteudos = state.conteudos.filter(c=>c.disciplina!==nome);
+    state.secoes = state.secoes.filter(s=>s.disciplina!==nome);
+    delete state.conteudoFrequencia[nome];
+    state.revisoes = state.revisoes.filter(r=>r.disciplina!==nome);
+    state.simulados.forEach(s=>{ if(s.resultados) delete s.resultados[nome]; });
+    const ci = state.simuladoChartDisciplinas.indexOf(nome);
+    if(ci>=0) state.simuladoChartDisciplinas.splice(ci,1);
+    if(state.conteudoDisciplina===nome) state.conteudoDisciplina = state.disciplinas[0]||null;
+    if(state.homeConteudoDisciplina===nome) state.homeConteudoDisciplina = state.disciplinas[0]||null;
+    if(state.homeRevisaoDisciplina===nome) state.homeRevisaoDisciplina='Todas';
+    if(state.revisaoFiltro===nome) state.revisaoFiltro='Todas';
+    render();
+  },
+  addConteudo(){
+    const el = document.getElementById('contNome');
+    const nome = el ? el.value.trim() : '';
+    if(!nome) return;
+    state.conteudos.push({id:nid(), disciplina: state.conteudoDisciplina, secaoId: state.addConteudoSecaoId||null, nome, feito:false, dataFeito:null});
+    render();
+    const newEl = document.getElementById('contNome');
+    if(newEl) newEl.focus();
+  },
+  toggleAddConteudo(secaoId){
+    if(state.showAddConteudo && state.addConteudoSecaoId===secaoId){
+      state.showAddConteudo=false;
+    } else {
+      state.showAddConteudo=true;
+      state.addConteudoSecaoId=secaoId||null;
+    }
+    render();
+  },
+  addSecao(){
+    const el = document.getElementById('secaoNome');
+    const nome = el ? el.value.trim() : '';
+    if(!nome) return;
+    state.secoes.push({id:nid(), disciplina: state.conteudoDisciplina, nome, colapsada:false});
+    state.showAddSecao=false;
+    render();
+  },
+  editSecao(id){
+    const sec = state.secoes.find(s=>s.id===id);
+    if(!sec) return;
+    const novo = prompt('Renomear seção:', sec.nome);
+    if(novo===null) return;
+    const nome = novo.trim();
+    if(!nome) return;
+    sec.nome = nome;
+    render();
+  },
+  removeSecao(id){
+    const sec = state.secoes.find(s=>s.id===id);
+    if(!sec) return;
+    if(!confirm('Remover a seção "'+sec.nome+'"? Os conteúdos dela ficarão sem seção (nada será apagado).')) return;
+    state.secoes = state.secoes.filter(s=>s.id!==id);
+    state.conteudos.forEach(c=>{ if(c.secaoId===id) c.secaoId=null; });
+    if(state.addConteudoSecaoId===id){ state.showAddConteudo=false; state.addConteudoSecaoId=null; }
+    render();
+  },
+  toggleSecaoColapsada(id){
+    const sec = state.secoes.find(s=>s.id===id);
+    if(!sec) return;
+    sec.colapsada = !sec.colapsada;
+    render();
+  },
+  toggleConteudo(id){
+    const c = state.conteudos.find(x=>x.id===id);
+    c.feito = !c.feito;
+    if(c.feito){ c.dataFeito = TODAY_STR; regenRevisoes(id, TODAY_STR); }
+    else { c.dataFeito = null; state.revisoes = state.revisoes.filter(r=>r.conteudoId!==id); }
+    render();
+  },
+  removeConteudo(id){
+    if(!confirm('Remover este conteúdo e suas revisões?')) return;
+    state.conteudos = state.conteudos.filter(c=>c.id!==id);
+    state.revisoes = state.revisoes.filter(r=>r.conteudoId!==id);
+    render();
+  },
+
+  // redacao
+  toggleRedacaoDia(d){
+    const i = state.redacaoFrequencia.indexOf(d);
+    if(i>=0) state.redacaoFrequencia.splice(i,1); else state.redacaoFrequencia.push(d);
+    render();
+  },
+  showRedacaoForm(){ state.showAddRedacao=true; state.redacaoEditId=null; render(); },
+  cancelRedacaoForm(){ state.showAddRedacao=false; state.redacaoEditId=null; render(); },
+  editRedacao(id){ state.showAddRedacao=true; state.redacaoEditId=id; render(); window.scrollTo(0,0); },
+  setRedacaoFiltroBanca(v){ state.redacaoFiltroBanca=v; render(); },
+  setRedacaoFiltroData(v){ state.redacaoFiltroData=v; render(); },
+  limparFiltroRedacao(){ state.redacaoFiltroBanca='Todas'; state.redacaoFiltroData=''; render(); },
+  addRedacao(){
+    const tema = document.getElementById('redTema').value.trim();
+    const banca = document.getElementById('redBanca').value.trim();
+    const data = document.getElementById('redData').value;
+    const notaMax = parseInt(document.getElementById('redNotaMax').value)||1000;
+    const nota = parseInt(document.getElementById('redNota').value);
+    const tempo = parseInt(document.getElementById('redTempo').value)||0;
+    const erros = document.getElementById('redErros').value.trim();
+    if(!tema || !data || isNaN(nota)){ alert('Preencha ao menos o tema, a data e a nota.'); return; }
+    if(state.redacaoEditId){
+      const r = state.redacoes.find(x=>x.id===state.redacaoEditId);
+      if(r){ Object.assign(r, {tema, banca, data, notaMax, nota, tempo, erros}); }
+    } else {
+      state.redacoes.push({id:nid(), tema, banca, data, notaMax, nota, tempo, erros});
+    }
+    state.showAddRedacao=false;
+    state.redacaoEditId=null;
+    render();
+  },
+  removeRedacao(id){ if(!confirm('Remover esta redação?')) return; state.redacoes = state.redacoes.filter(r=>r.id!==id); render(); },
+
+  // revisoes
+  setRevisaoFiltro(v){ state.revisaoFiltro=v; render(); },
+  toggleRevisao(id){ const r = state.revisoes.find(x=>x.id===id); r.feito=!r.feito; render(); },
+  addIntervalo(){
+    const el = document.getElementById('novoIntervalo');
+    const n = parseInt(el.value);
+    if(!n || n<1){ alert('Informe um número de dias válido.'); return; }
+    if(!state.revisaoIntervalos.includes(n)){ state.revisaoIntervalos.push(n); state.revisaoIntervalos.sort((a,b)=>a-b); }
+    render();
+  },
+  removeIntervalo(idx){
+    if(state.revisaoIntervalos.length<=1){ alert('Mantenha ao menos um intervalo.'); return; }
+    state.revisaoIntervalos.splice(idx,1);
+    render();
+  },
+  addAvulso(){
+    const titulo = document.getElementById('avTitulo').value.trim();
+    const disciplina = document.getElementById('avDisciplina').value || null;
+    const data = document.getElementById('avData').value;
+    if(!titulo || !data){ alert('Preencha o título e a data.'); return; }
+    const total = state.revisaoIntervalos.length;
+    const avulsoGroupId = nid();
+    state.revisaoIntervalos.forEach((days,idx)=>{
+      state.revisoes.push({id:nid(), conteudoId:null, avulsoGroupId, disciplina, titulo, numero:idx, total, dataPrevista:addDaysStr(data,days), dataBase:data, feito:false, avulso:true});
+    });
+    state.showAddAvulso=false;
+    render();
+  },
+  reiniciarConteudo(conteudoId){
+    const c = state.conteudos.find(x=>x.id===conteudoId);
+    if(!c) return;
+    const base = c.dataFeito || TODAY_STR;
+    if(!confirm('Isso vai desfazer as revisões já marcadas de "'+c.nome+'", recalculando o ciclo a partir da data original de estudo ('+fmtBR(base)+'). Continuar?')) return;
+    regenRevisoes(conteudoId, base);
+    render();
+  },
+  reiniciarTodas(){
+    if(!confirm('Isso vai desfazer todas as revisões já marcadas, recalculando cada ciclo a partir da data original de estudo de cada conteúdo (sem usar a data de hoje). Continuar?')) return;
+    const ids = [...new Set(state.conteudos.filter(c=>c.feito).map(c=>c.id))];
+    ids.forEach(id=>{
+      const c = state.conteudos.find(x=>x.id===id);
+      regenRevisoes(id, (c && c.dataFeito) || TODAY_STR);
+    });
+    render();
+  },
+
+  // ajustes: reset e modo noturno automático
+  resetApp(){
+    if(!confirm('Cuidado! Isso vai resetar TODOS os seus dados no aplicativo. Deseja prosseguir?')) return;
+    RESETTING = true;
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('painelEstudos_backupAuto');
+      localStorage.removeItem('painelEstudos_abasOcultas');
+      localStorage.removeItem('painelEstudos_cor');
+      localStorage.removeItem('painelEstudos_theme');
+      localStorage.removeItem('painelEstudos_onboarded');
+      localStorage.removeItem('painelEstudos_darkAuto');
+    }catch(e){}
+    location.reload();
+  },
+  toggleDarkAuto(){
+    state.darkAutoAtivo = !state.darkAutoAtivo;
+    saveDarkAutoPrefs();
+    if(state.darkAutoAtivo) applyDarkAuto();
+    render();
+  },
+  setDarkAutoInicio(v){ state.darkAutoInicio=v; saveDarkAutoPrefs(); applyDarkAuto(); render(); },
+  setDarkAutoFim(v){ state.darkAutoFim=v; saveDarkAutoPrefs(); applyDarkAuto(); render(); },
+};
+
+loadData();
+loadPrefs();
+if(!state.simuladoChartDisciplinas || !state.simuladoChartDisciplinas.length) state.simuladoChartDisciplinas = state.disciplinas.slice();
+try{
+  const savedTheme = localStorage.getItem('painelEstudos_theme');
+  if(savedTheme==='dark'){ state.theme='dark'; document.documentElement.setAttribute('data-theme','dark'); }
+}catch(e){}
+try{
+  if(!localStorage.getItem('painelEstudos_onboarded')) state.showOnboarding = true;
+}catch(e){ state.showOnboarding = true; }
+if(state.darkAutoAtivo){
+  state.theme = isNightNow() ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', state.theme);
+}
+applyCorTema();
+render();
+checkAutoBackup();
+setInterval(()=>{ if(applyDarkAuto()) render(); }, 60000);
+
+window.addEventListener('pagehide', saveData);
+window.addEventListener('beforeunload', saveData);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveData(); });
+
+try{ history.replaceState({screen:'home'}, ''); }catch(e){}
+window.addEventListener('popstate', function(){
+  if(state.menuOpen){ state.menuOpen=false; render(); return; }
+  if(state.screen!=='home'){
+    state.screen='home';
+    render();
+    window.scrollTo(0,0);
+  }
+  // if already on home, there's nothing left to intercept: the next back
+  // press falls through to the browser/WebView default (closes the app)
+});
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}</script>
+</body>
+</html>
