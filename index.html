@@ -34,7 +34,7 @@
     --gold-dim-contrast:#21005D;
     --teal:#4FD1C5;
     --teal-dim:rgba(79,209,197,0.16);
-    --coral:#B3261E;
+    --coral:#D3625A;
     --coral-dim:#F9DEDC;
     --green:#2E7D32;
     --green-dim:rgba(46,125,50,0.14);
@@ -62,8 +62,8 @@
     --gold-dim-contrast:#EADDFF;
     --teal:#5FE1D4;
     --teal-dim:rgba(95,225,212,0.18);
-    --coral:#F2B8B5;
-    --coral-dim:#8C1D18;
+    --coral:#F0B3AE;
+    --coral-dim:#7A332F;
     --green:#8BD68F;
     --green-dim:rgba(139,214,143,0.16);
     --purple:#CCC2DC;
@@ -513,6 +513,7 @@ const ICONS = {
   x:'<path d="M18 6L6 18M6 6l12 12"/>',
   chevleft:'<path d="M15 18l-6-6 6-6"/>',
   chevdown:'<path d="M6 9l6 6 6-6"/>',
+  chevup:'<path d="M6 15l6-6 6 6"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
   target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   layers:'<path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/>',
@@ -581,6 +582,18 @@ function loadPrefs(){
   try{
     const da = localStorage.getItem('painelEstudos_darkAuto');
     if(da){ const p = JSON.parse(da); state.darkAutoAtivo=!!p.ativo; state.darkAutoInicio=p.inicio||'19:00'; state.darkAutoFim=p.fim||'07:00'; }
+  }catch(e){}
+  try{
+    const hs = localStorage.getItem('painelEstudos_homeSecoes');
+    if(hs){ const p = JSON.parse(hs); if(Array.isArray(p.ordem)) state.homeSecoesOrdem=p.ordem; if(Array.isArray(p.ocultas)) state.homeSecoesOcultas=p.ocultas; }
+  }catch(e){}
+  normalizarHomeSecoesOrdem();
+}
+function saveHomeSecoesPrefs(){
+  try{
+    localStorage.setItem('painelEstudos_homeSecoes', JSON.stringify({
+      ordem: state.homeSecoesOrdem, ocultas: state.homeSecoesOcultas
+    }));
   }catch(e){}
 }
 function saveDarkAutoPrefs(){
@@ -704,6 +717,8 @@ const state = {
   showConcluidas:false,
   // ajustes
   abasOcultas:[],
+  homeSecoesOrdem:['estatisticas','disciplinas','revisoes','conteudos'],
+  homeSecoesOcultas:[],
   corTema:'roxo',
   backupAutoAtivo:false,
   backupAutoDias:7,
@@ -855,60 +870,71 @@ function renderHome(){
   const contDisc = state.homeConteudoDisciplina || state.disciplinas[0];
   const proximos = state.conteudos.filter(c=>!c.feito && c.disciplina===contDisc);
 
-  let html = topbarHome(fmtWeekdayLong(TODAY_STR), 'O que vai estudar hoje?');
+  let html = topbarHome(fmtWeekdayLong(TODAY_STR), 'Home');
   html += '<div class="screen">';
-
-  html += '<div class="card"><div class="card-title">'+ic('target')+' Estatísticas</div>';
-  html += '<div class="stats-grid">';
-  html += '<div class="stat"><div class="stat-value">'+(ultimoSimuladoPct!==null? ultimoSimuladoPct+'%':'—')+'</div><div class="stat-label">Último<br>simulado</div></div>';
-  html += '<div class="stat"><div class="stat-value">'+(ultimaRedacaoPct!==null? ultimaRedacaoPct+'%':'—')+'</div><div class="stat-label">Última<br>redação</div></div>';
-  html += '<div class="stat"><div class="stat-value">'+progresso+'%</div><div class="stat-label">Progresso<br>geral</div></div>';
-  html += '</div></div>';
 
   if(compromissoTexto) html += '<div class="banner banner-gold">'+ic('calendar')+' '+compromissoTexto+'</div>';
   if(simuladoTexto) html += '<div class="banner banner-gold">'+ic('clock')+' '+simuladoTexto+'</div>';
   if(diaRedacao) html += '<div class="banner banner-teal">'+ic('pen')+' Hoje é dia de redação!</div>';
 
+  const secaoHtml = {};
+
+  secaoHtml.estatisticas = '<div class="card"><div class="card-title">'+ic('target')+' Estatísticas</div>'+
+    '<div class="stats-grid">'+
+    '<div class="stat"><div class="stat-value">'+(ultimoSimuladoPct!==null? ultimoSimuladoPct+'%':'—')+'</div><div class="stat-label">Último<br>simulado</div></div>'+
+    '<div class="stat"><div class="stat-value">'+(ultimaRedacaoPct!==null? ultimaRedacaoPct+'%':'—')+'</div><div class="stat-label">Última<br>redação</div></div>'+
+    '<div class="stat"><div class="stat-value">'+progresso+'%</div><div class="stat-label">Progresso<br>geral</div></div>'+
+    '</div></div>';
+
   const disciplinasHoje = state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
-  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Disciplinas hoje</div><span class="faint">'+esc(DIAS_FULL[hojeAbrev])+'</span></div>';
+  let discHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Disciplinas hoje</div><span class="faint">'+esc(DIAS_FULL[hojeAbrev])+'</span></div>';
   if(!disciplinasHoje.length){
-    html += '<div class="empty">Nenhuma disciplina programada para hoje. Configure a frequência na aba Conteúdos.</div>';
+    discHtml += '<div class="empty">Nenhuma disciplina programada para hoje. Configure a frequência na aba Conteúdos.</div>';
   } else {
     disciplinasHoje.forEach(d=>{
       const total = state.conteudos.filter(c=>c.disciplina===d).length;
       const feitos = state.conteudos.filter(c=>c.disciplina===d && c.feito).length;
-      html += '<div class="check-row" style="cursor:pointer;" onclick="app.gotoConteudoDisciplina(\''+esc(d).replace(/"/g,'&quot;')+'\')">'+
+      discHtml += '<div class="check-row" style="cursor:pointer;" onclick="app.gotoConteudoDisciplina(\''+esc(d).replace(/"/g,'&quot;')+'\')">'+
         '<div style="width:2px;height:28px;background:var(--teal);border-radius:2px;flex-shrink:0;"></div>'+
         '<div class="check-text"><div class="check-label">'+esc(d)+'</div><div class="check-sub">'+feitos+'/'+total+' conteúdos vistos</div></div></div>';
     });
   }
-  html += '</div>';
+  discHtml += '</div>';
+  secaoHtml.disciplinas = discHtml;
 
-  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('repeat')+' Revisões de hoje</div></div>';
-  html += '<select onchange="app.setHomeRevisaoDisciplina(this.value)">'+revDiscOptions.map(d=>'<option '+(d===state.homeRevisaoDisciplina?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
-  html += '<div style="margin-top:10px;">';
-  if(!revsPendentes.length){ html += '<div class="empty">Nenhuma revisão atrasada ou marcada para hoje 🎉</div>'; }
+  let revHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('repeat')+' Revisões de hoje</div></div>'+
+    '<select onchange="app.setHomeRevisaoDisciplina(this.value)">'+revDiscOptions.map(d=>'<option '+(d===state.homeRevisaoDisciplina?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>'+
+    '<div style="margin-top:10px;">';
+  if(!revsPendentes.length){ revHtml += '<div class="empty">Nenhuma revisão pendente ou marcada para hoje 🎉</div>'; }
   else revsPendentes.slice(0,8).forEach(r=>{
     const atrasada = diffDays(r.dataPrevista)<0;
-    html += '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
+    revHtml += '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
       '<div class="check-text"><div class="check-label">'+esc(r.titulo)+'</div><div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+'</div></div>'+
-      '<span class="badge '+(atrasada?'badge-coral':'badge-gold')+'">'+(atrasada?'atrasada':'hoje')+'</span></div>';
+      '<span class="badge '+(atrasada?'badge-coral':'badge-gold')+'">'+(atrasada?'pendente':'hoje')+'</span></div>';
   });
-  html += '</div></div>';
+  revHtml += '</div></div>';
+  secaoHtml.revisoes = revHtml;
 
-  html += '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Próximos conteúdos</div></div>';
+  let contHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Próximos conteúdos</div></div>';
   if(!state.disciplinas.length){
-    html += '<div class="empty">Cadastre suas matérias na aba Conteúdos para começar.</div>';
+    contHtml += '<div class="empty">Cadastre suas matérias na aba Conteúdos para começar.</div>';
   } else {
-    html += '<select onchange="app.setHomeConteudoDisciplina(this.value)">'+state.disciplinas.map(d=>'<option '+(d===contDisc?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
-    html += '<div style="margin-top:10px;">';
-    if(!proximos.length){ html += '<div class="empty">Todos os conteúdos de '+esc(contDisc)+' já foram vistos ✅</div>'; }
+    contHtml += '<select onchange="app.setHomeConteudoDisciplina(this.value)">'+state.disciplinas.map(d=>'<option '+(d===contDisc?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
+    contHtml += '<div style="margin-top:10px;">';
+    if(!proximos.length){ contHtml += '<div class="empty">Todos os conteúdos de '+esc(contDisc)+' já foram vistos ✅</div>'; }
     else proximos.slice(0,8).forEach(c=>{
-      html += '<div class="check-row" onclick="app.toggleConteudo(\''+c.id+'\')"><div class="bubble"></div><div class="check-text"><div class="check-label">'+esc(c.nome)+'</div></div></div>';
+      contHtml += '<div class="check-row" onclick="app.toggleConteudo(\''+c.id+'\')"><div class="bubble"></div><div class="check-text"><div class="check-label">'+esc(c.nome)+'</div></div></div>';
     });
-    html += '</div>';
+    contHtml += '</div>';
   }
-  html += '</div>';
+  contHtml += '</div>';
+  secaoHtml.conteudos = contHtml;
+
+  normalizarHomeSecoesOrdem();
+  state.homeSecoesOrdem.forEach(k=>{
+    if(state.homeSecoesOcultas.includes(k)) return;
+    html += secaoHtml[k] || '';
+  });
 
   html += '</div>';
   return html;
@@ -1335,7 +1361,7 @@ function renderRevisoes(){
       '</div>';
   }
 
-  if(atrasadas.length){ html += '<div class="section-label"><span class="sq" style="background:var(--coral)"></span>Atrasadas ('+atrasadas.length+')</div><div class="card" style="padding:6px 14px;">'+atrasadas.map(revItem).join('')+'</div>'; }
+  if(atrasadas.length){ html += '<div class="section-label"><span class="sq" style="background:var(--coral)"></span>Pendentes ('+atrasadas.length+')</div><div class="card" style="padding:6px 14px;">'+atrasadas.map(revItem).join('')+'</div>'; }
   if(hoje.length){ html += '<div class="section-label"><span class="sq" style="background:var(--gold)"></span>Hoje ('+hoje.length+')</div><div class="card" style="padding:6px 14px;">'+hoje.map(revItem).join('')+'</div>'; }
   if(proximos30.length){ html += '<div class="section-label"><span class="sq" style="background:var(--teal)"></span>Próximos 30 dias ('+proximos30.length+')</div><div class="card" style="padding:6px 14px;">'+proximos30.map(revItem).join('')+'</div>'; }
   if(futuras.length){ html += '<div class="section-label"><span class="sq" style="background:var(--purple)"></span>Futuras ('+futuras.length+')</div><div class="card" style="padding:6px 14px;">'+futuras.map(revItem).join('')+'</div>'; }
@@ -1388,6 +1414,24 @@ function renderAjustes(){
   });
   html += '</div>';
 
+  // Seções da Home: o que aparece e em que ordem
+  html += '<div class="card"><div class="card-title">'+ic('home')+' Seções da Home</div>';
+  html += '<div class="muted" style="margin-bottom:6px;">Escolha quais seções aparecem na Home e em que ordem.</div>';
+  normalizarHomeSecoesOrdem();
+  state.homeSecoesOrdem.forEach((k,idx)=>{
+    const it = HOME_SECOES.find(s=>s.k===k);
+    if(!it) return;
+    const visivel = !state.homeSecoesOcultas.includes(k);
+    html += '<div class="switch-row">'+
+      '<div style="display:flex; align-items:center; gap:4px;">'+
+        '<button class="icon-btn" style="'+(idx===0?'opacity:.3;pointer-events:none;':'')+'" onclick="app.moveHomeSecao(\''+k+'\',-1)" aria-label="Mover para cima">'+ic('chevup','icon-sm')+'</button>'+
+        '<button class="icon-btn" style="'+(idx===state.homeSecoesOrdem.length-1?'opacity:.3;pointer-events:none;':'')+'" onclick="app.moveHomeSecao(\''+k+'\',1)" aria-label="Mover para baixo">'+ic('chevdown','icon-sm')+'</button>'+
+        '<div class="switch-label" style="margin-left:4px;">'+esc(it.label)+'</div>'+
+      '</div>'+
+      '<div class="switch '+(visivel?'on':'')+'" onclick="app.toggleHomeSecaoOculta(\''+k+'\')"></div></div>';
+  });
+  html += '</div>';
+
   // Cor do tema
   html += '<div class="card"><div class="card-title">'+ic('sun')+' Cor do tema</div>';
   html += '<div class="muted" style="margin-bottom:4px;">Escolha a cor de destaque do app.</div>';
@@ -1423,6 +1467,19 @@ function renderAjustes(){
 
   html += '</div>';
   return html;
+}
+
+/* ============ HOME: SEÇÕES CONFIGURÁVEIS ============ */
+const HOME_SECOES = [
+  {k:'estatisticas', label:'Estatísticas'},
+  {k:'disciplinas', label:'Disciplinas hoje'},
+  {k:'revisoes', label:'Revisões de hoje'},
+  {k:'conteudos', label:'Próximos conteúdos'},
+];
+function normalizarHomeSecoesOrdem(){
+  const validos = HOME_SECOES.map(s=>s.k);
+  state.homeSecoesOrdem = state.homeSecoesOrdem.filter(k=>validos.includes(k));
+  validos.forEach(k=>{ if(!state.homeSecoesOrdem.includes(k)) state.homeSecoesOrdem.push(k); });
 }
 
 /* ============ MENU SHEET ============ */
@@ -1480,6 +1537,22 @@ const app = {
     if(i>=0) state.abasOcultas.splice(i,1); else state.abasOcultas.push(k);
     try{ localStorage.setItem('painelEstudos_abasOcultas', JSON.stringify(state.abasOcultas)); }catch(e){}
     if(state.screen===k && i<0) state.screen='home';
+    render();
+  },
+  toggleHomeSecaoOculta(k){
+    const i = state.homeSecoesOcultas.indexOf(k);
+    if(i>=0) state.homeSecoesOcultas.splice(i,1); else state.homeSecoesOcultas.push(k);
+    saveHomeSecoesPrefs();
+    render();
+  },
+  moveHomeSecao(k, dir){
+    normalizarHomeSecoesOrdem();
+    const i = state.homeSecoesOrdem.indexOf(k);
+    const j = i+dir;
+    if(i<0 || j<0 || j>=state.homeSecoesOrdem.length) return;
+    const arr = state.homeSecoesOrdem;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    saveHomeSecoesPrefs();
     render();
   },
   toggleBackupAuto(){
@@ -1826,6 +1899,7 @@ const app = {
       localStorage.removeItem('painelEstudos_theme');
       localStorage.removeItem('painelEstudos_onboarded');
       localStorage.removeItem('painelEstudos_darkAuto');
+      localStorage.removeItem('painelEstudos_homeSecoes');
     }catch(e){}
     location.reload();
   },
