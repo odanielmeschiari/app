@@ -763,6 +763,8 @@ const state = {
   darkAutoAtivo:false,
   darkAutoInicio:'19:00',
   darkAutoFim:'07:00',
+  // onboarding
+  onboardStep:'intro',
 };
 
 const THEMES = {
@@ -782,6 +784,702 @@ function applyCorTema(){
   root.setProperty('--gold-dim', vars.goldDim);
   root.setProperty('--gold-contrast', vars.goldContrast);
   root.setProperty('--gold-dim-contrast', vars.goldDimContrast);
+}
+
+/* ============ PROGRAMA FUVEST (dados para onboarding) ============ */
+const FUVEST_PROGRAMA = {
+  "Língua Portuguesa": [
+    {
+      "titulo": "Relação entre textos e discursos",
+      "conteudos": [
+        "Domínio do funcionamento de diferentes linguagens e semioses para gerir processos de produção",
+        "circulação e análise de discursos"
+      ]
+    },
+    {
+      "titulo": "Estrutura Composicional e Gêneros",
+      "conteudos": [
+        "Análise de gêneros (anedota, anúncio, artigo de opinião, artigo científico, bilhete, bula, carta, charge, circular, conto, crônica, editorial, e-mail, ensaio, entrevista, fábula, folheto, guia, horóscopo, lei, letra de música, manifesto, manual, notícia, propaganda, receita, regras, regulamento, relato, relatório, reportagem, resenha, resumo, tutorial, verbete) e tipologias textuais (descrição, narração, dissertação, exposição, injunção)"
+      ]
+    },
+    {
+      "titulo": "Coesão e Coerência",
+      "conteudos": [
+        "Emprego adequado de recursos coesivos",
+        "operadores lógico-discursivos (causa, consequência, tese, argumentos, problema, solução, definição, exemplos) e progressão temática"
+      ]
+    },
+    {
+      "titulo": "Intertextualidade e Dialogia",
+      "conteudos": [
+        "Estabelecimento e avaliação de relações dialógicas",
+        "citações",
+        "paráfrases",
+        "paródias e estilizações"
+      ]
+    },
+    {
+      "titulo": "Efeitos de Sentido",
+      "conteudos": [
+        "Sinonímia",
+        "antonímia",
+        "denotação",
+        "conotação",
+        "polissemia",
+        "ambiguidade e figuras de linguagem"
+      ]
+    },
+    {
+      "titulo": "Modalização e Enunciação",
+      "conteudos": [
+        "Marcas linguísticas da posição de enunciação",
+        "modalização epistêmica",
+        "deôntica e apreciativa",
+        "verbos modais e estratégias de impessoalização"
+      ]
+    },
+    {
+      "titulo": "Sintaxe e Norma Padrão",
+      "conteudos": [
+        "Ordenação de constituintes",
+        "sintaxe sintagmática",
+        "coordenação",
+        "subordinação",
+        "concordância e regência"
+      ]
+    },
+    {
+      "titulo": "Leitura Literária e Estética",
+      "conteudos": [
+        "Peculiaridades de gêneros literários (crônica, romance, conto, poema)",
+        "movimentos literários (Classicismo, Barroco, Arcadismo, Romantismo, Realismo, Simbolismo, Parnasianismo, Pré-Modernismo, Modernismo) e obras de leitura obrigatória"
+      ]
+    }
+  ],
+  "Língua Inglesa": [
+    {
+      "titulo": "Gêneros Textuais e Contextos",
+      "conteudos": [
+        "Identificação de gêneros",
+        "circulação social",
+        "construção composicional e recepção de textos orais",
+        "escritos e multissemióticos"
+      ]
+    },
+    {
+      "titulo": "Léxico e Estrutura",
+      "conteudos": [
+        "Substantivos",
+        "adjetivos",
+        "sinonímia",
+        "antonímia",
+        "cognatos/falsos cognatos",
+        "polissemia e processos de formação de palavras"
+      ]
+    },
+    {
+      "titulo": "Relações Lógico-Discursivas",
+      "conteudos": [
+        "Divulgação científica",
+        "hierarquização de informações",
+        "argumentação",
+        "ironia",
+        "eufemismo",
+        "metáfora",
+        "metonímia",
+        "hipérbole e trocadilhos (puns)"
+      ]
+    },
+    {
+      "titulo": "Aspectos Gramaticais",
+      "conteudos": [
+        "Tempos verbais",
+        "modais (may, can, could, might, should, etc.)",
+        "comparativos",
+        "superlativos",
+        "expressões idiomáticas e phrasal verbs"
+      ]
+    },
+    {
+      "titulo": "Geopolítica e Variação",
+      "conteudos": [
+        "Inglês como língua franca",
+        "variação linguística",
+        "prevenção ao preconceito linguístico e imperialismo cultural/econômico"
+      ]
+    }
+  ],
+  "Arte": [
+    {
+      "titulo": "Elementos da Linguagem",
+      "conteudos": [
+        "Códigos",
+        "símbolos",
+        "signos artísticos e hibridismo nas quatro linguagens (visuais, dança, música, teatro)"
+      ]
+    },
+    {
+      "titulo": "Materialidades e Processo de Criação",
+      "conteudos": [
+        "Matéria",
+        "suportes",
+        "ferramentas",
+        "técnicas",
+        "percurso do artista (esboços, protótipos, registros)"
+      ]
+    },
+    {
+      "titulo": "Mediação Cultural e Patrimônio",
+      "conteudos": [
+        "Museus",
+        "galerias",
+        "curadoria",
+        "patrimônio material e imaterial",
+        "arte indígena e africana",
+        "história da arte"
+      ]
+    },
+    {
+      "titulo": "Contexto Social e Ético",
+      "conteudos": [
+        "Relação da arte com dimensões históricas",
+        "políticas",
+        "econômicas e tecnológicas (TDIC e transmídia)"
+      ]
+    }
+  ],
+  "Educação Física": [
+    {
+      "titulo": "Práticas Corporais",
+      "conteudos": [
+        "Brincadeiras",
+        "danças",
+        "lutas",
+        "esportes e ginásticas como textos culturais e patrimônio histórico"
+      ]
+    },
+    {
+      "titulo": "Inclusão e Democracia",
+      "conteudos": [
+        "Combate a estereótipos",
+        "preconceitos e promoção de interações inclusivas e democráticas"
+      ]
+    },
+    {
+      "titulo": "Saúde, Lazer e Autocuidado",
+      "conteudos": [
+        "Planejamento de rotinas para qualidade de vida",
+        "prevenção do sedentarismo e sustentabilidade nos espaços de vivência"
+      ]
+    },
+    {
+      "titulo": "Tecnologia e Mídia",
+      "conteudos": [
+        "Análise crítica das representações de beleza e corpo na mídia e uso ético de aplicativos e tecnologias de monitoramento"
+      ]
+    }
+  ],
+  "Matemática": [
+    {
+      "titulo": "Conjuntos Numéricos",
+      "conteudos": [
+        "Números naturais",
+        "inteiros",
+        "racionais e reais (operações, desigualdades, divisibilidade, valor absoluto)"
+      ]
+    },
+    {
+      "titulo": "Unidades, Medidas e Notação",
+      "conteudos": [
+        "Sistema Internacional de Medidas",
+        "conversões",
+        "bases de contagem",
+        "notação científica e algarismos significativos"
+      ]
+    },
+    {
+      "titulo": "Erros e Aproximações",
+      "conteudos": [
+        "Noção de erro em medições",
+        "estimativas e arredondamentos"
+      ]
+    },
+    {
+      "titulo": "Sequências e Progressões",
+      "conteudos": [
+        "Sequências numéricas",
+        "Progressões Aritméticas (PA) e Geométricas (PG)"
+      ]
+    },
+    {
+      "titulo": "Porcentagem e Matemática Financeira",
+      "conteudos": [
+        "Porcentagem",
+        "matemática financeira (juros simples e compostos)",
+        "taxas e índices socioeconômicos"
+      ]
+    },
+    {
+      "titulo": "Plano Cartesiano",
+      "conteudos": [
+        "Coordenadas",
+        "distância",
+        "equações da reta e da circunferência",
+        "posições relativas",
+        "paralelismo e perpendicularidade"
+      ]
+    },
+    {
+      "titulo": "Sistemas de Equações Lineares (até 3ª ordem)",
+      "conteudos": [
+        "Representação algébrica e geométrica",
+        "resolução e discussão"
+      ]
+    },
+    {
+      "titulo": "Álgebra: Expressões e Polinômios",
+      "conteudos": [
+        "Expressões algébricas",
+        "fatoração",
+        "produtos notáveis e divisão euclidiana de polinômios"
+      ]
+    },
+    {
+      "titulo": "Funções: Conceitos Gerais",
+      "conteudos": [
+        "Conceito de função",
+        "gráficos",
+        "domínio",
+        "imagem",
+        "crescimento/decrescimento",
+        "zeros",
+        "composição e função inversa"
+      ]
+    },
+    {
+      "titulo": "Tipos de Funções",
+      "conteudos": [
+        "Funções polinomiais de 1º e 2º graus (vértice, máximos e mínimos)",
+        "racionais simples",
+        "modulares",
+        "exponenciais",
+        "logarítmicas e trigonométricas"
+      ]
+    },
+    {
+      "titulo": "Equações e Inequações",
+      "conteudos": [
+        "Equações",
+        "inequações e funções definidas por partes"
+      ]
+    },
+    {
+      "titulo": "Trigonometria",
+      "conteudos": [
+        "Trigonometria no triângulo retângulo e no ciclo trigonométrico",
+        "identidades",
+        "lei dos senos e cossenos",
+        "modelagem de fenômenos periódicos"
+      ]
+    },
+    {
+      "titulo": "Geometria Plana",
+      "conteudos": [
+        "Figuras geométricas planas",
+        "polígonos",
+        "circunferência",
+        "círculo",
+        "áreas",
+        "perímetro",
+        "congruência e semelhança de triângulos",
+        "relações métricas e pavimentações"
+      ]
+    },
+    {
+      "titulo": "Transformações Geométricas",
+      "conteudos": [
+        "Transformações isométricas (translação, reflexão, rotação) e homotéticas (ampliação e redução)"
+      ]
+    },
+    {
+      "titulo": "Geometria Espacial",
+      "conteudos": [
+        "Poliedros",
+        "prismas",
+        "pirâmides",
+        "cilindros",
+        "cones",
+        "esferas",
+        "áreas",
+        "volumes",
+        "capacidades e planificações"
+      ]
+    },
+    {
+      "titulo": "Análise Combinatória",
+      "conteudos": [
+        "Princípio fundamental da contagem",
+        "arranjos",
+        "permutações e combinações",
+        "diagrama de árvore"
+      ]
+    },
+    {
+      "titulo": "Probabilidade",
+      "conteudos": [
+        "Probabilidade em espaços amostrais discretos e contínuos",
+        "eventos equiprováveis",
+        "união",
+        "interseção e probabilidade condicional"
+      ]
+    },
+    {
+      "titulo": "Estatística Descritiva",
+      "conteudos": [
+        "Organização de dados em tabelas",
+        "gráficos",
+        "histogramas",
+        "box-plot",
+        "medidas de tendência central (média, mediana, moda) e dispersão (amplitude, variância, desvio padrão)"
+      ]
+    }
+  ],
+  "Física": [
+    {
+      "titulo": "Mecânica",
+      "conteudos": [
+        "Grandezas escalares e vetoriais",
+        "Leis de Newton",
+        "trabalho",
+        "conservação de energia",
+        "impulso e momento linear",
+        "colisões",
+        "gravitação (Leis de Kepler)",
+        "Hidrostática e hidrodinâmica (pressão, empuxo, vazão)"
+      ]
+    },
+    {
+      "titulo": "Termologia e Termodinâmica",
+      "conteudos": [
+        "Termometria",
+        "calorimetria",
+        "dilatação",
+        "transmissão de calor",
+        "Leis da Termodinâmica",
+        "ciclos termodinâmicos e motores térmicos"
+      ]
+    },
+    {
+      "titulo": "Ondulatória e Óptica",
+      "conteudos": [
+        "Movimento harmônico",
+        "ondas mecânicas e eletromagnéticas (som e luz)",
+        "reflexão",
+        "refração",
+        "espectroscopia",
+        "interferência e difração"
+      ]
+    },
+    {
+      "titulo": "Eletricidade e Magnetismo",
+      "conteudos": [
+        "Eletrostática (Lei de Coulomb, campo elétrico)",
+        "eletrodinâmica (circuitos, geradores, receptores, Leis de Ohm)",
+        "magnetismo e indução eletromagnética"
+      ]
+    },
+    {
+      "titulo": "Física Moderna",
+      "conteudos": [
+        "Quantização de energia",
+        "efeito fotoelétrico",
+        "radioatividade",
+        "reações nucleares",
+        "modelo padrão de partículas e relatividade geral"
+      ]
+    }
+  ],
+  "Química": [
+    {
+      "titulo": "Geral e Inorgânica",
+      "conteudos": [
+        "Modelos atômicos",
+        "tabela periódica",
+        "ligações químicas (iônica, covalente, metálica)",
+        "forças intermoleculares",
+        "polaridade",
+        "soluções e propriedades coligativas"
+      ]
+    },
+    {
+      "titulo": "Físico-Química",
+      "conteudos": [
+        "Reações químicas",
+        "estequiometria",
+        "leis ponderais",
+        "termoquímica (entalpia, processos endotérmicos e exotérmicos, energia de ligação)",
+        "cinética química e equilíbrio químico"
+      ]
+    },
+    {
+      "titulo": "Química Orgânica",
+      "conteudos": [
+        "Compostos orgânicos",
+        "funções",
+        "isomeria",
+        "reatividade",
+        "polímeros e indústria petroquímica"
+      ]
+    },
+    {
+      "titulo": "Ambiental e Aplicada",
+      "conteudos": [
+        "Ácidos",
+        "bases",
+        "sais e pH",
+        "tratamento de água e esgoto",
+        "ciclos biogeoquímicos (carbono, nitrogênio, água, enxofre)",
+        "chuva ácida e poluição atmosférica"
+      ]
+    }
+  ],
+  "Biologia": [
+    {
+      "titulo": "Citologia e Bioquímica",
+      "conteudos": [
+        "Células procarióticas e eucarióticas",
+        "organelas",
+        "metabolismo energético (fotossíntese, respiração aeróbica, fermentação)",
+        "mitose e meiose"
+      ]
+    },
+    {
+      "titulo": "Genética e Biologia Molecular",
+      "conteudos": [
+        "DNA",
+        "código genético",
+        "síntese de proteínas",
+        "leis de Mendel",
+        "mutações",
+        "biotecnologia e manipulação genética"
+      ]
+    },
+    {
+      "titulo": "Evolução e Diversidade",
+      "conteudos": [
+        "Teoria sintética da evolução",
+        "seleção natural",
+        "especiação",
+        "filogenia e adaptações de plantas e animais aos diferentes ambientes"
+      ]
+    },
+    {
+      "titulo": "Ecologia e Meio Ambiente",
+      "conteudos": [
+        "Ecossistemas",
+        "cadeias e teias alimentares",
+        "relações ecológicas",
+        "ciclos biogeoquímicos",
+        "mudanças climáticas",
+        "desmatamento e sustentabilidade"
+      ]
+    },
+    {
+      "titulo": "Fisiologia Humana e Saúde",
+      "conteudos": [
+        "Sistemas do corpo humano (respiratório, digestório, cardiovascular, urinário, nervoso e endócrino)",
+        "nutrição",
+        "imunologia (vacinas)",
+        "ISTs",
+        "viroses",
+        "bacterioses e parasitoses (esquistossomose, teníase, malária, etc.)"
+      ]
+    }
+  ],
+  "Filosofia": [
+    {
+      "titulo": "Filosofia Antiga, Medieval, Moderna e Contemporânea",
+      "conteudos": [
+        "Principais autores e correntes (Pré-socráticos, Platão, Aristóteles, Tomás de Aquino, Maquiavel, Descartes, Kant, Nietzsche, Marx, Arendt, etc.)"
+      ]
+    },
+    {
+      "titulo": "Epistemologia",
+      "conteudos": [
+        "Teorias do conhecimento",
+        "racionalismo",
+        "empirismo",
+        "o ato de conhecer",
+        "fé versus razão",
+        "verdade",
+        "ciência e tecnologia"
+      ]
+    },
+    {
+      "titulo": "Ética e Filosofia Política",
+      "conteudos": [
+        "Deontologia",
+        "consequencialismo",
+        "teorias da justiça",
+        "Estado",
+        "soberania",
+        "democracia",
+        "direitos humanos e bioética"
+      ]
+    },
+    {
+      "titulo": "Estética e Lógica",
+      "conteudos": [
+        "Teorias do belo e do feio",
+        "atitude estética",
+        "lógica clássica",
+        "argumentação",
+        "falácias formais e informais"
+      ]
+    },
+    {
+      "titulo": "Antropologia Filosófica",
+      "conteudos": [
+        "Cultura",
+        "trabalho",
+        "sociedade de consumo",
+        "corporalidade",
+        "gênero",
+        "afetividade e finitude humana"
+      ]
+    }
+  ],
+  "Geografia": [
+    {
+      "titulo": "Geografia Física e Ambiental",
+      "conteudos": [
+        "Dinâmica da natureza",
+        "relevo",
+        "clima",
+        "hidrografia",
+        "biomas",
+        "impactos ambientais",
+        "mudanças climáticas",
+        "riscos e desastres socioambientais"
+      ]
+    },
+    {
+      "titulo": "Geografia Humana e Econômica",
+      "conteudos": [
+        "Demografia",
+        "transição demográfica",
+        "migrações",
+        "urbanização",
+        "segregação socioespacial",
+        "espaço urbano e rural",
+        "conflitos agrários"
+      ]
+    },
+    {
+      "titulo": "Geopolítica e Globalização",
+      "conteudos": [
+        "Estado-nação",
+        "fronteiras",
+        "territórios",
+        "potências mundiais",
+        "divisão internacional do trabalho",
+        "blocos econômicos e organismos internacionais (ONU, FMI, OMC)"
+      ]
+    },
+    {
+      "titulo": "Cartografia e Técnicas",
+      "conteudos": [
+        "Leitura de mapas temáticos",
+        "geotecnologias",
+        "meio técnico-científico-informacional e redes globais"
+      ]
+    }
+  ],
+  "História": [
+    {
+      "titulo": "História Geral",
+      "conteudos": [
+        "Antiguidade Oriental e Clássica",
+        "Idade Média (feudalismo, cristandade)",
+        "Idade Moderna (absolutismo, mercantilismo, Renascimento, Reforma, Revolução Científica e Iluminismo)",
+        "Idade Contemporânea (Revoluções Industriais, Revolução Francesa, Imperialismo, Guerras Mundiais, Guerra Fria e Globalização)"
+      ]
+    },
+    {
+      "titulo": "História do Brasil",
+      "conteudos": [
+        "Período Colonial (economia açucareira, expansão territorial, mineração, escravidão indígena e africana)",
+        "Período Imperial (Independência, Primeiro e Segundo Reinados, abolicionismo, crise da monarquia)",
+        "Período Republicano (República Velha, Era Vargas, Populismo, Ditadura Militar e Redemocratização)"
+      ]
+    },
+    {
+      "titulo": "Temas Transversais",
+      "conteudos": [
+        "História indígena",
+        "diáspora africana",
+        "movimentos sociais",
+        "cidadania",
+        "direitos humanos e patrimônio cultural material e imaterial"
+      ]
+    }
+  ],
+  "Sociologia": [
+    {
+      "titulo": "Fundamentos da Sociologia",
+      "conteudos": [
+        "O surgimento das ciências sociais",
+        "Karl Marx (luta de classes, alienação)",
+        "Émile Durkheim (fato social, coesão, anomia) e Max Weber (ação social, ética protestante, racionalização)"
+      ]
+    },
+    {
+      "titulo": "Cultura e Sociedade",
+      "conteudos": [
+        "Cultura popular",
+        "erudita",
+        "indústria cultural",
+        "meios de comunicação de massa",
+        "redes sociais",
+        "algoritmos e bolhas digitais"
+      ]
+    },
+    {
+      "titulo": "Pensamento Social Brasileiro",
+      "conteudos": [
+        "Interpretes do Brasil (Sérgio Buarque de Holanda, Gilberto Freyre, Caio Prado Júnior, Florestan Fernandes)",
+        "modernização",
+        "desigualdade racial e social"
+      ]
+    },
+    {
+      "titulo": "Desigualdade e Cidadania",
+      "conteudos": [
+        "Estratificação social",
+        "movimentos sociais",
+        "direitos civis",
+        "políticos e sociais",
+        "violência",
+        "preconceito",
+        "racismo e discriminação de gênero"
+      ]
+    }
+  ]
+};
+
+// Popula disciplinas, seções e conteúdos a partir do programa da FUVEST (usado no onboarding)
+function aplicarProgramaFuvest(){
+  Object.keys(FUVEST_PROGRAMA).forEach(disciplina=>{
+    if(!state.disciplinas.includes(disciplina)) state.disciplinas.push(disciplina);
+    FUVEST_PROGRAMA[disciplina].forEach(secao=>{
+      const secaoId = nid();
+      state.secoes.push({id:secaoId, disciplina, nome:secao.titulo, colapsada:false});
+      secao.conteudos.forEach(nomeConteudo=>{
+        state.conteudos.push({id:nid(), disciplina, secaoId, nome:nomeConteudo, feito:false, dataFeito:null});
+      });
+    });
+  });
+  if(!state.conteudoDisciplina) state.conteudoDisciplina = state.disciplinas[0]||null;
 }
 
 function regenRevisoes(conteudoId, fromDate, replace){
@@ -910,21 +1608,33 @@ function renderOnboardSheet(){
   const overlay = document.getElementById('onboardOverlay');
   overlay.classList.toggle('open', state.showOnboarding);
   if(!state.showOnboarding) return;
-  const steps = [
-    {icon:'layers', label:'Conteúdos', sub:'Cadastre suas matérias e marque os assuntos já estudados.'},
-    {icon:'chart', label:'Simulados', sub:'Registre resultados por disciplina e acompanhe sua evolução.'},
-    {icon:'calendar', label:'Calendário anual', sub:'Marque datas de inscrição e provas dos vestibulares.'},
-    {icon:'book', label:'Leituras obrigatórias', sub:'Controle os livros indicados para o vestibular.'},
-    {icon:'pen', label:'Redação', sub:'Registre temas, notas e frequência de treino.'},
-    {icon:'repeat', label:'Revisões', sub:'Acompanhe a repetição espaçada gerada automaticamente.'},
-  ];
-  let html = '<div class="sheet-title" style="font-size:18px;">Bem-vindo(a) ao SuperVest! 👋</div>';
-  html += '<div class="muted" style="margin-bottom:14px;">Esse é o seu espaço para organizar a reta final. Preencha cada seção abaixo para começar:</div>';
-  html += '<div>'+steps.map(s=>
-    '<div class="menu-item" style="cursor:default;"><span class="navcircle">'+ic(s.icon)+'</span>'+
-    '<div><div class="menu-item-title">'+s.label+'</div><div class="menu-item-sub">'+s.sub+'</div></div></div>'
-  ).join('')+'</div>';
-  html += '<button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="app.closeOnboarding()">'+ic('check2','icon-sm')+' Vamos começar</button>';
+  let html = '';
+  if(state.onboardStep==='vestibular'){
+    html += '<div class="sheet-title" style="font-size:18px;">Escolha seu vestibular para montar o cronograma</div>';
+    html += '<div class="muted" style="margin-bottom:14px;">Isso cadastra automaticamente disciplinas, seções e conteúdos para você. Você pode editar tudo depois na aba Conteúdos.</div>';
+    html += '<div>';
+    html += '<div class="menu-item" onclick="app.escolherVestibular(\'fuvest\')"><span class="navcircle">'+ic('layers')+'</span>'+
+      '<div><div class="menu-item-title">FUVEST</div><div class="menu-item-sub">Monta todas as disciplinas, seções e conteúdos do programa da FUVEST.</div></div></div>';
+    html += '<div class="menu-item" onclick="app.escolherVestibular(\'manual\')"><span class="navcircle">'+ic('plus')+'</span>'+
+      '<div><div class="menu-item-title">Inserir conteúdos manualmente</div><div class="menu-item-sub">Comece do zero e cadastre suas próprias disciplinas e conteúdos.</div></div></div>';
+    html += '</div>';
+  } else {
+    const steps = [
+      {icon:'layers', label:'Conteúdos', sub:'Cadastre suas matérias e marque os assuntos já estudados.'},
+      {icon:'chart', label:'Simulados', sub:'Registre resultados por disciplina e acompanhe sua evolução.'},
+      {icon:'calendar', label:'Calendário anual', sub:'Marque datas de inscrição e provas dos vestibulares.'},
+      {icon:'book', label:'Leituras obrigatórias', sub:'Controle os livros indicados para o vestibular.'},
+      {icon:'pen', label:'Redação', sub:'Registre temas, notas e frequência de treino.'},
+      {icon:'repeat', label:'Revisões', sub:'Acompanhe a repetição espaçada gerada automaticamente.'},
+    ];
+    html += '<div class="sheet-title" style="font-size:18px;">Bem-vindo(a) ao SuperVest! 👋</div>';
+    html += '<div class="muted" style="margin-bottom:14px;">Esse é o seu espaço para organizar a reta final. Preencha cada seção abaixo para começar:</div>';
+    html += '<div>'+steps.map(s=>
+      '<div class="menu-item" style="cursor:default;"><span class="navcircle">'+ic(s.icon)+'</span>'+
+      '<div><div class="menu-item-title">'+s.label+'</div><div class="menu-item-sub">'+s.sub+'</div></div></div>'
+    ).join('')+'</div>';
+    html += '<button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="app.closeOnboarding()">'+ic('check2','icon-sm')+' Vamos começar</button>';
+  }
   document.getElementById('onboardContent').innerHTML = html;
 }
 
@@ -1752,7 +2462,15 @@ const app = {
     saveBackupAutoPrefs();
   },
   closeOnboarding(){
+    state.onboardStep='vestibular';
+    render();
+  },
+  escolherVestibular(tipo){
+    if(tipo==='fuvest'){
+      aplicarProgramaFuvest();
+    }
     state.showOnboarding=false;
+    state.onboardStep='intro';
     try{ localStorage.setItem('painelEstudos_onboarded','1'); }catch(e){}
     app.goto('conteudos');
   },
@@ -2130,6 +2848,7 @@ const app = {
       localStorage.removeItem('painelEstudos_darkAuto');
       localStorage.removeItem('painelEstudos_homeSecoes');
       localStorage.removeItem('painelEstudos_homeSnapshots');
+      localStorage.removeItem('painelEstudos_homeQtds');
     }catch(e){}
     location.reload();
   },
