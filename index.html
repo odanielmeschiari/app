@@ -147,6 +147,8 @@
   .card-title-left{display:flex; align-items:center; gap:8px;}
   .muted{color:var(--text-dim); font-size:13px; line-height:1.5;}
   .faint{color:var(--text-faint); font-size:12px;}
+  .mini-link{color:var(--gold); font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0;}
+  .mini-link:active{opacity:.6;}
 
   /* icons */
   .icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
@@ -592,12 +594,23 @@ function loadPrefs(){
     const hs = localStorage.getItem('painelEstudos_homeSecoes');
     if(hs){ const p = JSON.parse(hs); if(Array.isArray(p.ordem)) state.homeSecoesOrdem=p.ordem; if(Array.isArray(p.ocultas)) state.homeSecoesOcultas=p.ocultas; }
   }catch(e){}
+  try{
+    const snaps = localStorage.getItem('painelEstudos_homeSnapshots');
+    if(snaps){ const p = JSON.parse(snaps); if(p.rev) state.homeRevSnapshots=p.rev; if(p.cont) state.homeContSnapshots=p.cont; }
+  }catch(e){}
   normalizarHomeSecoesOrdem();
 }
 function saveHomeSecoesPrefs(){
   try{
     localStorage.setItem('painelEstudos_homeSecoes', JSON.stringify({
       ordem: state.homeSecoesOrdem, ocultas: state.homeSecoesOcultas
+    }));
+  }catch(e){}
+}
+function saveHomeSnapshotsPrefs(){
+  try{
+    localStorage.setItem('painelEstudos_homeSnapshots', JSON.stringify({
+      rev: state.homeRevSnapshots, cont: state.homeContSnapshots
     }));
   }catch(e){}
 }
@@ -702,8 +715,10 @@ const state = {
   revisaoIntervalos:[1,7,15,30],
   // ui filters
   conteudoDisciplina:null,
-  homeRevisaoDisciplina:'Todas',
+  homeRevisaoDisciplina:'Hoje',
   homeConteudoDisciplina:null,
+  homeRevSnapshots:{},
+  homeContSnapshots:{},
   revisaoFiltro:'Todas',
   simuladoChartVestibular:'Todos',
   simuladoChartDisciplinas:[],
@@ -775,6 +790,89 @@ function proximaRevisaoPorGrupo(list){
     if(!atual || r.numero < atual.numero) map.set(key, r);
   });
   return Array.from(map.values());
+}
+
+// distribui itens de várias disciplinas em turnos (round-robin), respeitando um limite total
+function distribuirPorDisciplina(disciplinas, itensPorDisciplina, limite){
+  const resultado = {};
+  disciplinas.forEach(d=>resultado[d]=[]);
+  let total=0, idx=0, progresso=true;
+  while(total<limite && progresso){
+    progresso=false;
+    for(const d of disciplinas){
+      if(total>=limite) break;
+      const arr = itensPorDisciplina[d]||[];
+      if(idx<arr.length){
+        resultado[d].push(arr[idx]);
+        total++;
+        progresso=true;
+      }
+    }
+    idx++;
+  }
+  return resultado;
+}
+
+function disciplinasHojeList(){
+  const hojeAbrev = weekdayAbbrev(TODAY_STR);
+  return state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
+}
+
+// achata itens de várias disciplinas em ordem de rodízio (mesma lógica de distribuirPorDisciplina, sem limite)
+function poolRoundRobin(disciplinas, itensPorDisciplina){
+  const resultado = [];
+  let idx=0, progresso=true;
+  while(progresso){
+    progresso=false;
+    for(const d of disciplinas){
+      const arr = itensPorDisciplina[d]||[];
+      if(idx<arr.length){ resultado.push(arr[idx]); progresso=true; }
+    }
+    idx++;
+  }
+  return resultado;
+}
+
+function homeRevPool(revFiltro, disciplinasHoje){
+  const revsAtivas = proximaRevisaoPorGrupo(state.revisoes.filter(r=>!r.feito));
+  const revsPendentesGeral = revsAtivas.filter(r=>diffDays(r.dataPrevista)<=0).sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+  if(revFiltro==='Hoje'){
+    const porDisc = {};
+    disciplinasHoje.forEach(d=>{ porDisc[d] = revsPendentesGeral.filter(r=>r.disciplina===d); });
+    return poolRoundRobin(disciplinasHoje, porDisc);
+  } else if(revFiltro==='Todas'){
+    return revsPendentesGeral;
+  } else {
+    return revsPendentesGeral.filter(r=>r.disciplina===revFiltro);
+  }
+}
+
+function homeContPool(contFiltro, disciplinasHoje){
+  if(contFiltro==='Próximas'){
+    const porDisc = {};
+    disciplinasHoje.forEach(d=>{ porDisc[d] = state.conteudos.filter(c=>!c.feito && c.disciplina===d); });
+    return poolRoundRobin(disciplinasHoje, porDisc);
+  } else {
+    return state.conteudos.filter(c=>!c.feito && c.disciplina===contFiltro);
+  }
+}
+
+// mantém uma "fila" fixa de itens (por filtro) para o dia. Só preenche vagas livres,
+// sem reordenar ou remover o que já estava lá (isso é feito manualmente ao "atualizar").
+function ensureHomeSnapshot(store, key, poolItems, size){
+  let snap = store[key];
+  if(!snap || snap.date !== TODAY_STR){
+    snap = {date:TODAY_STR, ids:[]};
+    store[key] = snap;
+  }
+  if(snap.ids.length < size){
+    const existentes = new Set(snap.ids);
+    for(const item of poolItems){
+      if(snap.ids.length>=size) break;
+      if(!existentes.has(item.id)){ snap.ids.push(item.id); existentes.add(item.id); }
+    }
+  }
+  return snap;
 }
 
 /* ============ RENDER DISPATCH ============ */
@@ -863,19 +961,45 @@ function renderHome(){
   }
   const hojeAbrev = weekdayAbbrev(TODAY_STR);
   const diaRedacao = state.redacaoFrequencia.includes(hojeAbrev);
+  const disciplinasHoje = state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
 
-  // revisões pendentes (atrasadas + hoje)
-  const revDiscOptions = ['Todas', ...state.disciplinas];
-  const revsAtivas = proximaRevisaoPorGrupo(state.revisoes.filter(r=>!r.feito));
-  const revsPendentes = revsAtivas.filter(r=>diffDays(r.dataPrevista)<=0)
-    .filter(r=> state.homeRevisaoDisciplina==='Todas' || r.disciplina===state.homeRevisaoDisciplina)
-    .sort((a,b)=>a.dataPrevista.localeCompare(b.dataPrevista));
+  // revisões pendentes (atrasadas + hoje) — fila fixa de até 8, mantida durante o dia
+  const revDiscOptions = ['Hoje', 'Todas', ...state.disciplinas];
+  const revFiltro = state.homeRevisaoDisciplina || 'Hoje';
+  const revPool = homeRevPool(revFiltro, disciplinasHoje);
+  const revSnap = ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, revPool, 8);
+  let revItems = revSnap.ids.map(id=>state.revisoes.find(r=>r.id===id)).filter(Boolean);
+  if(revItems.length!==revSnap.ids.length){ revSnap.ids = revItems.map(r=>r.id); }
 
-  // próximos conteúdos
-  const contDisc = state.homeConteudoDisciplina || state.disciplinas[0];
-  const proximos = state.conteudos.filter(c=>!c.feito && c.disciplina===contDisc);
+  let revGrupos = null; // {disciplina: [itens]} quando filtro === 'Hoje'
+  let revsPendentes = [];
+  if(revFiltro==='Hoje'){
+    revGrupos = {};
+    disciplinasHoje.forEach(d=>{ revGrupos[d] = revItems.filter(r=>r.disciplina===d); });
+  } else {
+    revsPendentes = revItems;
+  }
 
-  let html = topbarHome(fmtWeekdayLong(TODAY_STR), 'Home');
+  // próximos conteúdos — fila fixa de até 4, mantida durante o dia
+  const contDiscOptions = ['Próximas', ...state.disciplinas];
+  const contFiltro = state.homeConteudoDisciplina || 'Próximas';
+  const contPool = homeContPool(contFiltro, disciplinasHoje);
+  const contSnap = ensureHomeSnapshot(state.homeContSnapshots, contFiltro, contPool, 4);
+  let contItems = contSnap.ids.map(id=>state.conteudos.find(c=>c.id===id)).filter(Boolean);
+  if(contItems.length!==contSnap.ids.length){ contSnap.ids = contItems.map(c=>c.id); }
+
+  let contGrupos = null; // {disciplina: [itens]} quando filtro === 'Próximas'
+  let proximos = [];
+  if(contFiltro==='Próximas'){
+    contGrupos = {};
+    disciplinasHoje.forEach(d=>{ contGrupos[d] = contItems.filter(c=>c.disciplina===d); });
+  } else {
+    proximos = contItems;
+  }
+
+  saveHomeSnapshotsPrefs();
+
+  let html = topbarHome(fmtWeekdayLong(TODAY_STR), 'Home: Bons estudos!');
   html += '<div class="screen">';
 
   if(compromissoTexto) html += '<div class="banner banner-gold">'+ic('calendar')+' '+compromissoTexto+'</div>';
@@ -891,7 +1015,6 @@ function renderHome(){
     '<div class="stat"><div class="stat-value">'+progresso+'%</div><div class="stat-label">Progresso<br>geral</div></div>'+
     '</div></div>';
 
-  const disciplinasHoje = state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
   let discHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Disciplinas hoje</div><span class="faint">'+esc(DIAS_FULL[hojeAbrev])+'</span></div>';
   if(!disciplinasHoje.length){
     discHtml += '<div class="empty">Nenhuma disciplina programada para hoje. Configure a frequência na aba Conteúdos.</div>';
@@ -907,29 +1030,65 @@ function renderHome(){
   discHtml += '</div>';
   secaoHtml.disciplinas = discHtml;
 
-  let revHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('repeat')+' Revisões de hoje</div></div>'+
-    '<select onchange="app.setHomeRevisaoDisciplina(this.value)">'+revDiscOptions.map(d=>'<option '+(d===state.homeRevisaoDisciplina?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>'+
-    '<div style="margin-top:10px;">';
-  if(!revsPendentes.length){ revHtml += '<div class="empty">Nenhuma revisão pendente ou marcada para hoje 🎉</div>'; }
-  else revsPendentes.slice(0,8).forEach(r=>{
+  function revItemHtml(r){
     const atrasada = diffDays(r.dataPrevista)<0;
-    revHtml += '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
-      '<div class="check-text"><div class="check-label">'+esc(r.titulo)+'</div><div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+'</div></div>'+
+    return '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
+      '<div class="check-text"><div class="check-label '+(r.feito?'done':'')+'">'+esc(r.titulo)+'</div><div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+'</div></div>'+
       '<span class="badge '+(atrasada?'badge-amber':'badge-gold')+'">'+(atrasada?'pendente':'hoje')+'</span></div>';
-  });
+  }
+  function contItemHtml(c){
+    return '<div class="check-row" onclick="app.toggleConteudo(\''+c.id+'\')"><div class="bubble '+(c.feito?'checked':'')+'"></div>'+
+      '<div class="check-text"><div class="check-label '+(c.feito?'done':'')+'">'+esc(c.nome)+'</div></div></div>';
+  }
+
+  let revHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('repeat')+' Revisões de hoje</div><span class="mini-link" onclick="app.atualizarHomeRevisoes()">Atualizar</span></div>';
+  revHtml += '<select onchange="app.setHomeRevisaoDisciplina(this.value)">'+revDiscOptions.map(d=>'<option '+(d===revFiltro?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
+  revHtml += '<div style="margin-top:10px;">';
+  if(revFiltro==='Hoje'){
+    if(!disciplinasHoje.length){
+      revHtml += '<div class="empty">Nada por aqui. Aproveite seu dia de folga!</div>';
+    } else {
+      const gruposComItens = disciplinasHoje.filter(d=> revGrupos[d] && revGrupos[d].length);
+      if(!gruposComItens.length){
+        revHtml += '<div class="empty">Nenhuma revisão pendente para as disciplinas de hoje 🎉</div>';
+      } else {
+        gruposComItens.forEach(d=>{
+          if(gruposComItens.length>1) revHtml += '<div class="faint" style="margin:10px 0 2px; font-weight:600;">'+esc(d)+'</div>';
+          revGrupos[d].forEach(r=>{ revHtml += revItemHtml(r); });
+        });
+      }
+    }
+  } else {
+    if(!revsPendentes.length){ revHtml += '<div class="empty">Nenhuma revisão pendente ou marcada para hoje 🎉</div>'; }
+    else revsPendentes.forEach(r=>{ revHtml += revItemHtml(r); });
+  }
   revHtml += '</div></div>';
   secaoHtml.revisoes = revHtml;
 
-  let contHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Próximos conteúdos</div></div>';
+  let contHtml = '<div class="card"><div class="card-title"><div class="card-title-left">'+ic('layers')+' Próximos conteúdos</div><span class="mini-link" onclick="app.atualizarHomeConteudos()">Atualizar</span></div>';
   if(!state.disciplinas.length){
     contHtml += '<div class="empty">Cadastre suas matérias na aba Conteúdos para começar.</div>';
   } else {
-    contHtml += '<select onchange="app.setHomeConteudoDisciplina(this.value)">'+state.disciplinas.map(d=>'<option '+(d===contDisc?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
+    contHtml += '<select onchange="app.setHomeConteudoDisciplina(this.value)">'+contDiscOptions.map(d=>'<option '+(d===contFiltro?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select>';
     contHtml += '<div style="margin-top:10px;">';
-    if(!proximos.length){ contHtml += '<div class="empty">Todos os conteúdos de '+esc(contDisc)+' já foram vistos ✅</div>'; }
-    else proximos.slice(0,8).forEach(c=>{
-      contHtml += '<div class="check-row" onclick="app.toggleConteudo(\''+c.id+'\')"><div class="bubble"></div><div class="check-text"><div class="check-label">'+esc(c.nome)+'</div></div></div>';
-    });
+    if(contFiltro==='Próximas'){
+      if(!disciplinasHoje.length){
+        contHtml += '<div class="empty">Nada por aqui. Aproveite seu dia de folga!</div>';
+      } else {
+        const gruposComItens = disciplinasHoje.filter(d=> contGrupos[d] && contGrupos[d].length);
+        if(!gruposComItens.length){
+          contHtml += '<div class="empty">Todos os conteúdos de hoje já foram vistos ✅</div>';
+        } else {
+          gruposComItens.forEach(d=>{
+            if(gruposComItens.length>1) contHtml += '<div class="faint" style="margin:10px 0 2px; font-weight:600;">'+esc(d)+'</div>';
+            contGrupos[d].forEach(c=>{ contHtml += contItemHtml(c); });
+          });
+        }
+      }
+    } else {
+      if(!proximos.length){ contHtml += '<div class="empty">Todos os conteúdos de '+esc(contFiltro)+' já foram vistos ✅</div>'; }
+      else proximos.forEach(c=>{ contHtml += contItemHtml(c); });
+    }
     contHtml += '</div>';
   }
   contHtml += '</div>';
@@ -1618,6 +1777,26 @@ const app = {
   // home
   setHomeRevisaoDisciplina(v){ state.homeRevisaoDisciplina=v; render(); },
   setHomeConteudoDisciplina(v){ state.homeConteudoDisciplina=v; render(); },
+  atualizarHomeRevisoes(){
+    const revFiltro = state.homeRevisaoDisciplina || 'Hoje';
+    const disciplinasHoje = disciplinasHojeList();
+    const snap = state.homeRevSnapshots[revFiltro];
+    const keepIds = snap ? snap.ids.filter(id=>{ const r=state.revisoes.find(x=>x.id===id); return r && !r.feito; }) : [];
+    state.homeRevSnapshots[revFiltro] = {date: TODAY_STR, ids: keepIds};
+    ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, homeRevPool(revFiltro, disciplinasHoje), 8);
+    saveHomeSnapshotsPrefs();
+    render();
+  },
+  atualizarHomeConteudos(){
+    const contFiltro = state.homeConteudoDisciplina || 'Próximas';
+    const disciplinasHoje = disciplinasHojeList();
+    const snap = state.homeContSnapshots[contFiltro];
+    const keepIds = snap ? snap.ids.filter(id=>{ const c=state.conteudos.find(x=>x.id===id); return c && !c.feito; }) : [];
+    state.homeContSnapshots[contFiltro] = {date: TODAY_STR, ids: keepIds};
+    ensureHomeSnapshot(state.homeContSnapshots, contFiltro, homeContPool(contFiltro, disciplinasHoje), 4);
+    saveHomeSnapshotsPrefs();
+    render();
+  },
 
   // simulados
   setChartVestibular(v){ state.simuladoChartVestibular=v; render(); },
@@ -1728,6 +1907,9 @@ const app = {
     if(state.homeConteudoDisciplina===oldName) state.homeConteudoDisciplina=nome;
     if(state.homeRevisaoDisciplina===oldName) state.homeRevisaoDisciplina=nome;
     if(state.revisaoFiltro===oldName) state.revisaoFiltro=nome;
+    if(state.homeRevSnapshots[oldName]){ state.homeRevSnapshots[nome]=state.homeRevSnapshots[oldName]; delete state.homeRevSnapshots[oldName]; }
+    if(state.homeContSnapshots[oldName]){ state.homeContSnapshots[nome]=state.homeContSnapshots[oldName]; delete state.homeContSnapshots[oldName]; }
+    saveHomeSnapshotsPrefs();
     const ci = state.simuladoChartDisciplinas.indexOf(oldName);
     if(ci>=0) state.simuladoChartDisciplinas[ci]=nome;
     render();
@@ -1743,9 +1925,12 @@ const app = {
     const ci = state.simuladoChartDisciplinas.indexOf(nome);
     if(ci>=0) state.simuladoChartDisciplinas.splice(ci,1);
     if(state.conteudoDisciplina===nome) state.conteudoDisciplina = state.disciplinas[0]||null;
-    if(state.homeConteudoDisciplina===nome) state.homeConteudoDisciplina = state.disciplinas[0]||null;
-    if(state.homeRevisaoDisciplina===nome) state.homeRevisaoDisciplina='Todas';
+    if(state.homeConteudoDisciplina===nome) state.homeConteudoDisciplina = null;
+    if(state.homeRevisaoDisciplina===nome) state.homeRevisaoDisciplina='Hoje';
     if(state.revisaoFiltro===nome) state.revisaoFiltro='Todas';
+    delete state.homeRevSnapshots[nome];
+    delete state.homeContSnapshots[nome];
+    saveHomeSnapshotsPrefs();
     render();
   },
   addConteudo(){
@@ -1905,6 +2090,7 @@ const app = {
       localStorage.removeItem('painelEstudos_onboarded');
       localStorage.removeItem('painelEstudos_darkAuto');
       localStorage.removeItem('painelEstudos_homeSecoes');
+      localStorage.removeItem('painelEstudos_homeSnapshots');
     }catch(e){}
     location.reload();
   },
