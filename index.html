@@ -34,8 +34,10 @@
     --gold-dim-contrast:#21005D;
     --teal:#4FD1C5;
     --teal-dim:rgba(79,209,197,0.16);
-    --coral:#D3625A;
+    --coral:#B3261E;
     --coral-dim:#F9DEDC;
+    --amber:#B26A00;
+    --amber-dim:#FCE4C2;
     --green:#2E7D32;
     --green-dim:rgba(46,125,50,0.14);
     --purple:#625B71;
@@ -62,8 +64,10 @@
     --gold-dim-contrast:#EADDFF;
     --teal:#5FE1D4;
     --teal-dim:rgba(95,225,212,0.18);
-    --coral:#F0B3AE;
-    --coral-dim:#7A332F;
+    --coral:#F2B8B5;
+    --coral-dim:#8C1D18;
+    --amber:#FFCB80;
+    --amber-dim:#5C3E00;
     --green:#8BD68F;
     --green-dim:rgba(139,214,143,0.16);
     --purple:#CCC2DC;
@@ -280,6 +284,7 @@
   .badge-gold{background:var(--gold-dim); color:var(--gold-dim-contrast);}
   .badge-teal{background:var(--teal-dim); color:var(--teal);}
   .badge-coral{background:var(--coral-dim); color:var(--coral);}
+  .badge-amber{background:var(--amber-dim); color:var(--amber);}
   .badge-green{background:var(--green-dim); color:var(--green);}
   .badge-neutral{background:var(--card-2); color:var(--text-dim);}
 
@@ -910,7 +915,7 @@ function renderHome(){
     const atrasada = diffDays(r.dataPrevista)<0;
     revHtml += '<div class="check-row" onclick="app.toggleRevisao(\''+r.id+'\')"><div class="bubble '+(r.feito?'checked':'')+'"></div>'+
       '<div class="check-text"><div class="check-label">'+esc(r.titulo)+'</div><div class="check-sub">'+esc(r.disciplina||'Independente')+' · Revisão '+(r.numero+1)+'/'+r.total+'</div></div>'+
-      '<span class="badge '+(atrasada?'badge-coral':'badge-gold')+'">'+(atrasada?'pendente':'hoje')+'</span></div>';
+      '<span class="badge '+(atrasada?'badge-amber':'badge-gold')+'">'+(atrasada?'pendente':'hoje')+'</span></div>';
   });
   revHtml += '</div></div>';
   secaoHtml.revisoes = revHtml;
@@ -1361,7 +1366,7 @@ function renderRevisoes(){
       '</div>';
   }
 
-  if(atrasadas.length){ html += '<div class="section-label"><span class="sq" style="background:var(--coral)"></span>Pendentes ('+atrasadas.length+')</div><div class="card" style="padding:6px 14px;">'+atrasadas.map(revItem).join('')+'</div>'; }
+  if(atrasadas.length){ html += '<div class="section-label"><span class="sq" style="background:var(--amber)"></span>Pendentes ('+atrasadas.length+')</div><div class="card" style="padding:6px 14px;">'+atrasadas.map(revItem).join('')+'</div>'; }
   if(hoje.length){ html += '<div class="section-label"><span class="sq" style="background:var(--gold)"></span>Hoje ('+hoje.length+')</div><div class="card" style="padding:6px 14px;">'+hoje.map(revItem).join('')+'</div>'; }
   if(proximos30.length){ html += '<div class="section-label"><span class="sq" style="background:var(--teal)"></span>Próximos 30 dias ('+proximos30.length+')</div><div class="card" style="padding:6px 14px;">'+proximos30.map(revItem).join('')+'</div>'; }
   if(futuras.length){ html += '<div class="section-label"><span class="sq" style="background:var(--purple)"></span>Futuras ('+futuras.length+')</div><div class="card" style="padding:6px 14px;">'+futuras.map(revItem).join('')+'</div>'; }
