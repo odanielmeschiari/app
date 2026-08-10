@@ -598,6 +598,10 @@ function loadPrefs(){
     const snaps = localStorage.getItem('painelEstudos_homeSnapshots');
     if(snaps){ const p = JSON.parse(snaps); if(p.rev) state.homeRevSnapshots=p.rev; if(p.cont) state.homeContSnapshots=p.cont; }
   }catch(e){}
+  try{
+    const qtds = localStorage.getItem('painelEstudos_homeQtds');
+    if(qtds){ const p = JSON.parse(qtds); if(p.rev) state.homeRevQtd=p.rev; if(p.cont) state.homeContQtd=p.cont; }
+  }catch(e){}
   normalizarHomeSecoesOrdem();
 }
 function saveHomeSecoesPrefs(){
@@ -611,6 +615,13 @@ function saveHomeSnapshotsPrefs(){
   try{
     localStorage.setItem('painelEstudos_homeSnapshots', JSON.stringify({
       rev: state.homeRevSnapshots, cont: state.homeContSnapshots
+    }));
+  }catch(e){}
+}
+function saveHomeQtdsPrefs(){
+  try{
+    localStorage.setItem('painelEstudos_homeQtds', JSON.stringify({
+      rev: state.homeRevQtd, cont: state.homeContQtd
     }));
   }catch(e){}
 }
@@ -719,6 +730,8 @@ const state = {
   homeConteudoDisciplina:null,
   homeRevSnapshots:{},
   homeContSnapshots:{},
+  homeRevQtd:8,
+  homeContQtd:4,
   revisaoFiltro:'Todas',
   simuladoChartVestibular:'Todos',
   simuladoChartDisciplinas:[],
@@ -963,11 +976,11 @@ function renderHome(){
   const diaRedacao = state.redacaoFrequencia.includes(hojeAbrev);
   const disciplinasHoje = state.disciplinas.filter(d=>(state.conteudoFrequencia[d]||[]).includes(hojeAbrev));
 
-  // revisões pendentes (atrasadas + hoje) — fila fixa de até 8, mantida durante o dia
+  // revisões pendentes (atrasadas + hoje) — fila fixa de até homeRevQtd, mantida durante o dia
   const revDiscOptions = ['Hoje', 'Todas', ...state.disciplinas];
   const revFiltro = state.homeRevisaoDisciplina || 'Hoje';
   const revPool = homeRevPool(revFiltro, disciplinasHoje);
-  const revSnap = ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, revPool, 8);
+  const revSnap = ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, revPool, state.homeRevQtd);
   let revItems = revSnap.ids.map(id=>state.revisoes.find(r=>r.id===id)).filter(Boolean);
   if(revItems.length!==revSnap.ids.length){ revSnap.ids = revItems.map(r=>r.id); }
 
@@ -980,11 +993,11 @@ function renderHome(){
     revsPendentes = revItems;
   }
 
-  // próximos conteúdos — fila fixa de até 4, mantida durante o dia
+  // próximos conteúdos — fila fixa de até homeContQtd, mantida durante o dia
   const contDiscOptions = ['Próximas', ...state.disciplinas];
   const contFiltro = state.homeConteudoDisciplina || 'Próximas';
   const contPool = homeContPool(contFiltro, disciplinasHoje);
-  const contSnap = ensureHomeSnapshot(state.homeContSnapshots, contFiltro, contPool, 4);
+  const contSnap = ensureHomeSnapshot(state.homeContSnapshots, contFiltro, contPool, state.homeContQtd);
   let contItems = contSnap.ids.map(id=>state.conteudos.find(c=>c.id===id)).filter(Boolean);
   if(contItems.length!==contSnap.ids.length){ contSnap.ids = contItems.map(c=>c.id); }
 
@@ -1596,6 +1609,14 @@ function renderAjustes(){
   });
   html += '</div>';
 
+  // Quantidade de itens na Home
+  html += '<div class="card"><div class="card-title">'+ic('repeat')+' Quantidade de itens na Home</div>';
+  html += '<div class="muted" style="margin-bottom:6px;">Defina quantas revisões e quantos conteúdos novos aparecem por dia nos cards da Home. Quando há mais de uma disciplina hoje, o app divide essa quantidade entre elas.</div>';
+  html += '<div class="field-row">'+
+    '<div class="field"><label class="field-label">Revisões por dia</label><input type="number" min="1" max="30" value="'+state.homeRevQtd+'" onchange="app.setHomeRevQtd(this.value)"></div>'+
+    '<div class="field"><label class="field-label">Conteúdos novos por dia</label><input type="number" min="1" max="30" value="'+state.homeContQtd+'" onchange="app.setHomeContQtd(this.value)"></div>'+
+  '</div></div>';
+
   // Cor do tema
   html += '<div class="card"><div class="card-title">'+ic('sun')+' Cor do tema</div>';
   html += '<div class="muted" style="margin-bottom:4px;">Escolha a cor de destaque do app.</div>';
@@ -1775,6 +1796,24 @@ const app = {
   },
 
   // home
+  setHomeRevQtd(v){
+    const n = parseInt(v);
+    if(!n || n<1) return;
+    state.homeRevQtd = Math.min(n, 30);
+    state.homeRevSnapshots = {}; // recomeça as filas para refletir a nova quantidade
+    saveHomeQtdsPrefs();
+    saveHomeSnapshotsPrefs();
+    render();
+  },
+  setHomeContQtd(v){
+    const n = parseInt(v);
+    if(!n || n<1) return;
+    state.homeContQtd = Math.min(n, 30);
+    state.homeContSnapshots = {}; // recomeça as filas para refletir a nova quantidade
+    saveHomeQtdsPrefs();
+    saveHomeSnapshotsPrefs();
+    render();
+  },
   setHomeRevisaoDisciplina(v){ state.homeRevisaoDisciplina=v; render(); },
   setHomeConteudoDisciplina(v){ state.homeConteudoDisciplina=v; render(); },
   atualizarHomeRevisoes(){
@@ -1783,7 +1822,7 @@ const app = {
     const snap = state.homeRevSnapshots[revFiltro];
     const keepIds = snap ? snap.ids.filter(id=>{ const r=state.revisoes.find(x=>x.id===id); return r && !r.feito; }) : [];
     state.homeRevSnapshots[revFiltro] = {date: TODAY_STR, ids: keepIds};
-    ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, homeRevPool(revFiltro, disciplinasHoje), 8);
+    ensureHomeSnapshot(state.homeRevSnapshots, revFiltro, homeRevPool(revFiltro, disciplinasHoje), state.homeRevQtd);
     saveHomeSnapshotsPrefs();
     render();
   },
@@ -1793,7 +1832,7 @@ const app = {
     const snap = state.homeContSnapshots[contFiltro];
     const keepIds = snap ? snap.ids.filter(id=>{ const c=state.conteudos.find(x=>x.id===id); return c && !c.feito; }) : [];
     state.homeContSnapshots[contFiltro] = {date: TODAY_STR, ids: keepIds};
-    ensureHomeSnapshot(state.homeContSnapshots, contFiltro, homeContPool(contFiltro, disciplinasHoje), 4);
+    ensureHomeSnapshot(state.homeContSnapshots, contFiltro, homeContPool(contFiltro, disciplinasHoje), state.homeContQtd);
     saveHomeSnapshotsPrefs();
     render();
   },
